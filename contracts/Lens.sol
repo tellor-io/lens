@@ -1,4 +1,6 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+
+pragma solidity >=0.5.16;
 
 import "tellorcore/contracts/TellorMaster.sol";
 
@@ -23,14 +25,6 @@ contract Lens {
      * @return Returns the current tips for a give request ID.
      */
     function totalTip(uint256 requestID) external view returns (uint256) {
-        return master.getRequestUintVars(requestID, keccak256("totalTip"));
-    }
-
-    /**
-     * @param requestID is the ID for which the function returns the total tips.
-     * @return Returns the current tips for a give request ID.
-     */
-    function addTip(uint256 requestID) external view returns (uint256) {
         return master.getRequestUintVars(requestID, keccak256("totalTip"));
     }
 }

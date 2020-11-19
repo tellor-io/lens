@@ -1,6 +1,3 @@
-const { time } = require("console");
-const { TIMEOUT } = require("dns");
-
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config();
@@ -39,7 +36,7 @@ task("deploy", "Deploy and verify the contracts on rinkeby")
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  defaultNetwork: "rinkeby",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
     },
@@ -57,6 +54,12 @@ module.exports = {
     // Obtain one at https://etherscan.io/
     apiKey: process.env.ETHERSCAN
   },
-  solidity: "0.5.16",
+  solidity: {
+    compilers: [
+      {
+        version: "0.5.16"
+      }
+    ],
+  }
 };
 
