@@ -54,12 +54,6 @@ module.exports = {
     // Obtain one at https://etherscan.io/
     apiKey: process.env.ETHERSCAN
   },
-  solidity: {
-    compilers: [
-      {
-        version: "0.5.16"
-      }
-    ],
-  }
+  solidity: "0.5.17",
 };
 

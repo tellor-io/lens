@@ -3,21 +3,21 @@
 pragma solidity >=0.5.16;
 
 import "tellorcore/contracts/TellorMaster.sol";
-import "hardhat/console.sol";
+import "usingtellor/contracts/UsingTellor.sol";
 
 /**
  * @title Tellor Lens
  * @dev A contract to aggregate and simplify calls to the Tellor oracle.
  **/
-contract Lens {
+contract Lens is UsingTellor {
     TellorMaster public tellor;
 
     /*Constructor*/
     /**
      * @dev the constructor sets the storage address and owner
-     * @param _master is the Tellor address
+     * @param _master is the Tellor proxy contract address.
      */
-    constructor(address payable _master) public {
+    constructor(address payable _master) public UsingTellor(_master) {
         tellor = TellorMaster(_master);
     }
 

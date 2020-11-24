@@ -25,6 +25,7 @@
     "ethereum-waffle": "^3.2.0",
     "ethers": "^5.0.19",
     "hardhat": "^2.0.3",
-    "mocha": "^8.2.1"
+    "mocha": "^8.2.1",
+    "usingtellor": "github:tellor-io/usingtellor#v2.5"
   }
 }

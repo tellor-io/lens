@@ -12,7 +12,9 @@ import "tellorcore/contracts/TellorGetters.sol";
 import "tellorcore/contracts/Tellor.sol";
 import "tellorcore/contracts/TellorMaster.sol";
 
-contract TellorTest is Tellor {
+contract TellorTest is
+    Tellor // TellorMaster has too many legacy dependancies to just import Tellor.
+{
     constructor() public {
         tellor.uintVars[keccak256("stakeAmount")] = 500e18;
         tellor.uintVars[keccak256("disputeFee")] = 500e18;
