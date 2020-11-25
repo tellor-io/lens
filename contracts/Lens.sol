@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.5.16;
+pragma experimental ABIEncoderV2;
 
 import "tellorcore/contracts/TellorMaster.sol";
 import "usingtellor/contracts/UsingTellor.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Tellor Lens
@@ -50,5 +52,36 @@ contract Lens is UsingTellor {
 
         uint256 tip = tellor.getUintVar(keccak256("currentTotalTips")) / 10; // Half of the tips are burnt.
         return rewardAccumulated + tip;
+    }
+
+    struct value {
+        uint256 timestamp;
+        uint256 value;
+    }
+
+    /**
+     * @param requestID is the ID for which the function returns the values for.
+     * @param count is the number of last values to return.
+     * @return Returns the last N values for a request ID.
+     */
+    function getLastNewValues(uint256 requestID, uint256 count)
+        external
+        view
+        returns (value[] memory)
+    {
+        uint256 totalCount = tellor.getNewValueCountbyRequestId(requestID);
+        value[] memory values = new value[](count);
+        console.log(totalCount);
+
+        for (uint256 i = 0; i < count; i++) {
+            uint256 ts = tellor.getTimestampbyRequestIDandIndex(
+                requestID,
+                totalCount - i - 1
+            );
+            uint256 v = tellor.retrieveData(requestID, ts);
+            values[i] = value({timestamp: ts, value: v});
+        }
+
+        return values;
     }
 }

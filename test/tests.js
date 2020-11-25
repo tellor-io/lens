@@ -36,6 +36,48 @@ describe("All tests", function () {
       expect(await toTest.currentReward()).to.equal(BigInt(4e18));
     }
   });
+
+  it("Should return the last N submitted values", async function () {
+    await tellor.setBalance(acc1.address, 1000);
+    await tellor.setBalance(acc2.address, 1000);
+    await tellor.setBalance(acc3.address, 1000);
+    await tellor.setBalance(acc4.address, 1000);
+    await tellor.setBalance(acc5.address, 1000);
+
+    await tellor.connect(acc1).depositStake();
+    await tellor.connect(acc2).depositStake();
+    await tellor.connect(acc3).depositStake();
+    await tellor.connect(acc4).depositStake();
+    await tellor.connect(acc5).depositStake();
+
+    let val1 = 11;
+    await tellor.connect(acc1).submitMiningSolution("", [1, 2, 3, 4, 5], [val1, 00, 00, 00, 00]);
+    await tellor.connect(acc2).submitMiningSolution("", [1, 2, 3, 4, 5], [val1, 00, 00, 00, 00]);
+    await tellor.connect(acc3).submitMiningSolution("", [1, 2, 3, 4, 5], [val1, 00, 00, 00, 00]);
+    await tellor.connect(acc4).submitMiningSolution("", [1, 2, 3, 4, 5], [val1, 00, 00, 00, 00]);
+    await tellor.connect(acc5).submitMiningSolution("", [1, 2, 3, 4, 5], [val1, 00, 00, 00, 00]);
+    timeOfLastValue1 = parseInt(await toTest.timeOfLastNewValue());
+
+    await waffle.provider.send("evm_setNextBlockTimestamp", [timeOfLastValue1 + 9000]); // Forward 15min so that it takes any nonce solution.
+    let val2 = 11;
+    await tellor.connect(acc1).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, 00, 00, val2]);
+    await tellor.connect(acc2).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, 00, 00, val2]);
+    await tellor.connect(acc3).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, 00, 00, val2]);
+    await tellor.connect(acc4).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, 00, 00, val2]);
+    await tellor.connect(acc5).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, 00, 00, val2]);
+    timeOfLastValue2 = parseInt(await toTest.timeOfLastNewValue());
+
+
+    let res = await toTest.getLastNewValues(1, 2)
+
+    // The order of the returned values is reversed. Newest to oldest.
+    expect(res[0].value).to.equal(val2);
+    expect(res[0].timestamp).to.equal(timeOfLastValue2);
+
+    expect(res[1].value).to.equal(val1);
+    expect(res[1].timestamp).to.equal(timeOfLastValue1);
+
+  });
 });
 
 // `beforeEach` will run before each test, re-deploying the contract every
@@ -107,6 +149,7 @@ beforeEach(async function () {
   toTest = await fact.deploy(tellor.address);
   await toTest.deployed();
 
-  // Set the initial state.
+  // Set the initial required state for the test tasks.
   await tellor.setBalance(owner.address, 1000);
+  await tellor.setBalance(tellor.address, 1e10);
 });

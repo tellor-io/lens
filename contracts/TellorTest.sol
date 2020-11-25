@@ -31,13 +31,13 @@ contract TellorTest is
         tellor.currentMiners[2].value = 3;
         tellor.currentMiners[3].value = 4;
         tellor.currentMiners[4].value = 5;
+
+        tellor.addressVars[keccak256("_owner")] = msg.sender;
     }
 
     function setBalance(address _address, uint256 _amount) public {
-        // `tellor` variable is inherited from the Tellor contract.
-        tellor.uintVars[keccak256("total_supply")] += _amount;
         TellorTransfer.updateBalanceAtNow(
-            tellor.balances[_address],
+            tellor.balances[_address], // `tellor` variable is inherited from the Tellor contract.
             _amount * 1e18
         );
     }
@@ -61,5 +61,39 @@ contract TellorTest is
 
     function getUintVar(bytes32 _data) external view returns (uint256) {
         return TellorGettersLibrary.getUintVar(tellor, _data);
+    }
+
+    function getNewValueCountbyRequestId(uint256 _requestId)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            TellorGettersLibrary.getNewValueCountbyRequestId(
+                tellor,
+                _requestId
+            );
+    }
+
+    function getTimestampbyRequestIDandIndex(uint256 _requestID, uint256 _index)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            TellorGettersLibrary.getTimestampbyRequestIDandIndex(
+                tellor,
+                _requestID,
+                _index
+            );
+    }
+
+    function retrieveData(uint256 _requestId, uint256 _timestamp)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            TellorGettersLibrary.retrieveData(tellor, _requestId, _timestamp);
     }
 }

@@ -19,10 +19,16 @@ task("deploy", "Deploy and verify the contracts on rinkeby")
     const contract = await t.deploy(masterAddress);
     await contract.deployed();
     console.log("contract deployed to:", contract.address);
+    console.log("    transaction hash:", contract.deployTransaction.hash);
+
 
     // Wait for 2 confirmed transactions.
     // Otherwise the etherscan api doesn't find the deployed contract.
+    console.log('waiting for tx confirmation...');
+
     await contract.deployTransaction.wait(2)
+
+    console.log('submitting for etherscan verification...');
 
     await hre.run(
       "verify", {
