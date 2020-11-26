@@ -24,22 +24,6 @@ contract Lens is UsingTellor {
     }
 
     /**
-     * @param requestID is the ID for which the function returns the total tips.
-     * @return Returns the current tips for a give request ID.
-     */
-    function totalTip(uint256 requestID) external view returns (uint256) {
-        return proxy.getRequestUintVars(requestID, keccak256("totalTip"));
-    }
-
-    /**
-     * @return Returns the timeOfLastNewValue variable.
-        this variable is set when starting a new mining block.
-     */
-    function timeOfLastNewValue() external view returns (uint256) {
-        return proxy.getUintVar(keccak256("timeOfLastNewValue"));
-    }
-
-    /**
      * @return Returns the current reward amount.
         TODO remove once https://github.com/proxy-io/TellorCore/issues/109 is implemented and deployed.
      */
@@ -83,5 +67,21 @@ contract Lens is UsingTellor {
         }
 
         return values;
+    }
+
+    /**
+     * @param requestID is the ID for which the function returns the total tips.
+     * @return Returns the current tips for a give request ID.
+     */
+    function totalTip(uint256 requestID) external view returns (uint256) {
+        return proxy.getRequestUintVars(requestID, keccak256("totalTip"));
+    }
+
+    /**
+     * @return Returns the timeOfLastNewValue variable.
+        this variable is set when starting a new mining block.
+     */
+    function timeOfLastNewValue() external view returns (uint256) {
+        return proxy.getUintVar(keccak256("timeOfLastNewValue"));
     }
 }
