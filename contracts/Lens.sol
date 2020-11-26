@@ -12,7 +12,7 @@ import "hardhat/console.sol";
  * @dev A contract to aggregate and simplify calls to the Tellor oracle.
  **/
 contract Lens is UsingTellor {
-    TellorMaster public tellor;
+    TellorMaster public proxy;
 
     /*Constructor*/
     /**
@@ -20,7 +20,7 @@ contract Lens is UsingTellor {
      * @param _master is the Tellor proxy contract address.
      */
     constructor(address payable _master) public UsingTellor(_master) {
-        tellor = TellorMaster(_master);
+        proxy = TellorMaster(_master);
     }
 
     /**
@@ -28,7 +28,7 @@ contract Lens is UsingTellor {
      * @return Returns the current tips for a give request ID.
      */
     function totalTip(uint256 requestID) external view returns (uint256) {
-        return tellor.getRequestUintVars(requestID, keccak256("totalTip"));
+        return proxy.getRequestUintVars(requestID, keccak256("totalTip"));
     }
 
     /**
@@ -36,21 +36,21 @@ contract Lens is UsingTellor {
         this variable is set when starting a new mining block.
      */
     function timeOfLastNewValue() external view returns (uint256) {
-        return tellor.getUintVar(keccak256("timeOfLastNewValue"));
+        return proxy.getUintVar(keccak256("timeOfLastNewValue"));
     }
 
     /**
      * @return Returns the current reward amount.
-        TODO remove once https://github.com/tellor-io/TellorCore/issues/109 is implemented and deployed.
+        TODO remove once https://github.com/proxy-io/TellorCore/issues/109 is implemented and deployed.
      */
     function currentReward() external view returns (uint256) {
         uint256 timeDiff = now -
-            tellor.getUintVar(keccak256("timeOfLastNewValue"));
+            proxy.getUintVar(keccak256("timeOfLastNewValue"));
         uint256 rewardAmount = 1e18;
 
         uint256 rewardAccumulated = (timeDiff * rewardAmount) / 300; // 1TRB every 6 minutes.
 
-        uint256 tip = tellor.getUintVar(keccak256("currentTotalTips")) / 10; // Half of the tips are burnt.
+        uint256 tip = proxy.getUintVar(keccak256("currentTotalTips")) / 10; // Half of the tips are burnt.
         return rewardAccumulated + tip;
     }
 
@@ -69,16 +69,16 @@ contract Lens is UsingTellor {
         view
         returns (value[] memory)
     {
-        uint256 totalCount = tellor.getNewValueCountbyRequestId(requestID);
+        uint256 totalCount = proxy.getNewValueCountbyRequestId(requestID);
         value[] memory values = new value[](count);
         console.log(totalCount);
 
         for (uint256 i = 0; i < count; i++) {
-            uint256 ts = tellor.getTimestampbyRequestIDandIndex(
+            uint256 ts = proxy.getTimestampbyRequestIDandIndex(
                 requestID,
                 totalCount - i - 1
             );
-            uint256 v = tellor.retrieveData(requestID, ts);
+            uint256 v = proxy.retrieveData(requestID, ts);
             values[i] = value({timestamp: ts, value: v});
         }
 
