@@ -25,3 +25,9 @@ jobs:
     - run: npx hardhat test
       env:
         CI: true
+        # These are not needed for the tests but
+        # hardhat fails to start if not present.
+        INFURA_RINKEBY: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        INFURA_MAINNET: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        PRIVATE_KEY: "00000000000000000000000000000000000000000000000000"
+
