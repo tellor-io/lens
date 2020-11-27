@@ -77,6 +77,8 @@ describe("All tests", function () {
     expect(res[1].value).to.equal(val1);
     expect(res[1].timestamp).to.equal(timeOfLastValue1);
 
+    expect(await toTest.getLastNewValues(1, 9999)).to.throw('revert count request higher than existing total count values of 2');
+
   });
 });
 
