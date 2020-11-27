@@ -8,8 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build:
-
+  Tests:
     runs-on: ubuntu-latest
 
     strategy:

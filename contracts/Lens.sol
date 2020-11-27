@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 
 import "tellorcore/contracts/TellorMaster.sol";
 import "usingtellor/contracts/UsingTellor.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Tellor Lens
@@ -54,9 +53,14 @@ contract Lens is UsingTellor {
         returns (value[] memory)
     {
         uint256 totalCount = proxy.getNewValueCountbyRequestId(requestID);
+        require(
+            count <= totalCount,
+            concat(
+                "count request higher than existing total count values of ",
+                uint2str(totalCount)
+            )
+        );
         value[] memory values = new value[](count);
-        console.log(totalCount);
-
         for (uint256 i = 0; i < count; i++) {
             uint256 ts = proxy.getTimestampbyRequestIDandIndex(
                 requestID,
@@ -192,5 +196,36 @@ contract Lens is UsingTellor {
      */
     function stakerCount() external view returns (uint256) {
         return proxy.getUintVar(keccak256("stakerCount"));
+    }
+
+    function uint2str(uint256 _i)
+        internal
+        pure
+        returns (string memory _uintAsString)
+    {
+        if (_i == 0) {
+            return "0";
+        }
+        uint256 j = _i;
+        uint256 len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint256 k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = bytes1(uint8(48 + (_i % 10)));
+            _i /= 10;
+        }
+        return string(bstr);
+    }
+
+    function concat(string memory a, string memory b)
+        internal
+        pure
+        returns (string memory)
+    {
+        return string(abi.encodePacked(bytes(a), bytes(b)));
     }
 }

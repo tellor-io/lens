@@ -1,3 +1,5 @@
+![Checks](https://github.com/tellor-io/lens/workflows/Checks/badge.svg)
+
 Deploy on Rinkeby
 ```
 hardhat deploy --master-address 0xfe41cb708cd98c5b20423433309e55b53f79134a
