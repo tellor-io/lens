@@ -53,13 +53,9 @@ contract Lens is UsingTellor {
         returns (value[] memory)
     {
         uint256 totalCount = proxy.getNewValueCountbyRequestId(requestID);
-        require(
-            count <= totalCount,
-            concat(
-                "count request higher than existing total count values of ",
-                uint2str(totalCount)
-            )
-        );
+        if (count > totalCount) {
+            count = totalCount;
+        }
         value[] memory values = new value[](count);
         for (uint256 i = 0; i < count; i++) {
             uint256 ts = proxy.getTimestampbyRequestIDandIndex(

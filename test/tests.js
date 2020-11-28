@@ -77,7 +77,9 @@ describe("All tests", function () {
     expect(res[1].value).to.equal(val1);
     expect(res[1].timestamp).to.equal(timeOfLastValue1);
 
-    expect(toTest.getLastNewValues(1, 9999)).to.be.reverted
+    // A request over the max values count should still return the max available.
+    res = await toTest.getLastNewValues(1, 9999);
+    expect(res.length).to.equal(2);
 
   });
 });
