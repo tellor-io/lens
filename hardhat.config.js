@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("./dataIDs");
 require("dotenv").config();
 
 
@@ -15,25 +16,26 @@ task("deploy", "Deploy and verify the contracts on rinkeby")
   .addParam("masterAddress", "The master contract address")
   .setAction(async taskArgs => {
     var masterAddress = taskArgs.masterAddress
-    await run("compile");
-    const t = await ethers.getContractFactory("Lens");
-    const contract = await t.deploy(masterAddress);
-    await contract.deployed();
-    console.log("contract deployed to:", contract.address);
-    console.log("    transaction hash:", contract.deployTransaction.hash);
+    run("compile");
+    console.log("dataIDs", dataIDs)
+    // const t = await ethers.getContractFactory("Lens");
+    // const contract = await t.deploy(masterAddress);
+    // await contract.deployed();
+    // console.log("contract deployed to:", contract.address);
+    // console.log("    transaction hash:", contract.deployTransaction.hash);
 
-    // Wait for few confirmed transactions.
-    // Otherwise the etherscan api doesn't find the deployed contract.
-    console.log('waiting for tx confirmation...');
-    await contract.deployTransaction.wait(3)
+    // // Wait for few confirmed transactions.
+    // // Otherwise the etherscan api doesn't find the deployed contract.
+    // console.log('waiting for tx confirmation...');
+    // await contract.deployTransaction.wait(3)
 
-    console.log('submitting for etherscan verification...');
-    await run(
-      "verify", {
-      address: contract.address,
-      constructorArguments: [masterAddress],
-    },
-    )
+    // console.log('submitting for etherscan verification...');
+    // await run(
+    //   "verify", {
+    //   address: contract.address,
+    //   constructorArguments: [masterAddress],
+    // },
+    // )
   });
 
 /**
@@ -45,11 +47,11 @@ module.exports = {
     hardhat: {
     },
     rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_RINKEBY}`,
+      url: `${process.env.NODE_URL_RINKEBY}`,
       accounts: [process.env.PRIVATE_KEY]
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_MAINNET}`,
+      url: `${process.env.NODE_URL_MAINNET}`,
       accounts: [process.env.PRIVATE_KEY]
     }
   },
@@ -58,6 +60,11 @@ module.exports = {
     // Obtain one at https://etherscan.io/
     apiKey: process.env.ETHERSCAN
   },
-  solidity: "0.5.17",
+  solidity: {
+    compilers: [
+      { version: "0.5.17" },
+      { version: "0.7.4", }
+    ]
+  },
 };
 
