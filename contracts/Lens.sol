@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.4;
+pragma solidity >=0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "usingtellor/contracts/UsingTellor.sol";
@@ -62,8 +62,6 @@ contract Lens is UsingTellor {
         master = TellorMaster(_master);
         admin = msg.sender;
 
-        // DataIDs = new DataID[](_DataIDs.length);
-
         for (uint256 i = 0; i < _DataIDs.length; i++) {
             DataIDs.push(_DataIDs[i]);
         }
@@ -78,9 +76,10 @@ contract Lens is UsingTellor {
         admin = _admin;
     }
 
-    function setDataIDs(DataID[] memory _DataIDs) external onlyAdmin {
+    function replaceDataIDs(DataID[] memory _DataIDs) external onlyAdmin {
+        delete DataIDs;
         for (uint256 i = 0; i < _DataIDs.length; i++) {
-            DataIDs[i] = _DataIDs[i];
+            DataIDs.push(_DataIDs[i]);
         }
     }
 

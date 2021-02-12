@@ -3,6 +3,8 @@ require("@nomiclabs/hardhat-etherscan");
 require("./dataIDs");
 require("dotenv").config();
 
+const { dataIDs } = require("./dataIDs");
+
 
 task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();
@@ -12,30 +14,30 @@ task("accounts", "Prints the list of accounts", async () => {
   }
 });
 
-task("deploy", "Deploy and verify the contracts on rinkeby")
-  .addParam("masterAddress", "The master contract address")
+task("deploy", "Deploy and verify the contracts")
+  .addParam("oracleAddress", "The master contract address")
   .setAction(async taskArgs => {
-    var masterAddress = taskArgs.masterAddress
+    var oracleAddress = taskArgs.oracleAddress
     run("compile");
-    console.log("dataIDs", dataIDs)
-    // const t = await ethers.getContractFactory("Lens");
-    // const contract = await t.deploy(masterAddress);
-    // await contract.deployed();
-    // console.log("contract deployed to:", contract.address);
-    // console.log("    transaction hash:", contract.deployTransaction.hash);
+    const t = await ethers.getContractFactory("Lens");
+    const contract = await t.deploy(oracleAddress, dataIDs);
+    await contract.deployed();
+    console.log("contract deployed to:", contract.address);
+    console.log("    transaction hash:", contract.deployTransaction.hash);
 
-    // // Wait for few confirmed transactions.
-    // // Otherwise the etherscan api doesn't find the deployed contract.
-    // console.log('waiting for tx confirmation...');
-    // await contract.deployTransaction.wait(3)
+    // Wait for few confirmed transactions.
+    // Otherwise the etherscan api doesn't find the deployed contract.
+    console.log('waiting for tx confirmation...');
+    await contract.deployTransaction.wait(3)
 
-    // console.log('submitting for etherscan verification...');
-    // await run(
-    //   "verify", {
-    //   address: contract.address,
-    //   constructorArguments: [masterAddress],
-    // },
-    // )
+    console.log('submitting for etherscan verification...');
+
+    await run(
+      "verify", {
+      address: contract.address,
+      constructorArguments: [oracleAddress, dataIDs],
+    },
+    )
   });
 
 /**
@@ -63,7 +65,7 @@ module.exports = {
   solidity: {
     compilers: [
       { version: "0.5.17" },
-      { version: "0.7.4", }
+      { version: "0.7.6", }
     ]
   },
 };
