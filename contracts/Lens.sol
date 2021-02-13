@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity >=0.7.6;
+// solhint-disable-next-line compiler-version
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "usingtellor/contracts/UsingTellor.sol";
@@ -39,7 +39,7 @@ interface TellorMaster {
 contract Lens is UsingTellor {
     TellorMaster public master;
 
-    struct DataID {
+    struct dataID {
         uint256 id;
         string name;
         uint256 granularity;
@@ -54,16 +54,16 @@ contract Lens is UsingTellor {
 
     address private admin;
 
-    DataID[] public DataIDs;
+    dataID[] public dataIDs;
 
-    constructor(address payable _master, DataID[] memory _DataIDs)
+    constructor(address payable _master, dataID[] memory _dataIDs)
         UsingTellor(_master)
     {
         master = TellorMaster(_master);
         admin = msg.sender;
 
-        for (uint256 i = 0; i < _DataIDs.length; i++) {
-            DataIDs.push(_DataIDs[i]);
+        for (uint256 i = 0; i < _dataIDs.length; i++) {
+            dataIDs.push(_dataIDs[i]);
         }
     }
 
@@ -76,23 +76,23 @@ contract Lens is UsingTellor {
         admin = _admin;
     }
 
-    function replaceDataIDs(DataID[] memory _DataIDs) external onlyAdmin {
-        delete DataIDs;
-        for (uint256 i = 0; i < _DataIDs.length; i++) {
-            DataIDs.push(_DataIDs[i]);
+    function replaceDataIDs(dataID[] memory _dataIDs) external onlyAdmin {
+        delete dataIDs;
+        for (uint256 i = 0; i < _dataIDs.length; i++) {
+            dataIDs.push(_dataIDs[i]);
         }
     }
 
-    function setDataID(uint256 _id, DataID memory _DataID) external onlyAdmin {
-        DataIDs[_id] = _DataID;
+    function setDataID(uint256 _id, dataID memory _dataID) external onlyAdmin {
+        dataIDs[_id] = _dataID;
     }
 
-    function pushDataID(DataID memory _DataID) external onlyAdmin {
-        DataIDs.push(_DataID);
+    function pushDataID(dataID memory _dataID) external onlyAdmin {
+        dataIDs.push(_dataID);
     }
 
-    function DataIDS() external view returns (DataID[] memory) {
-        return DataIDs;
+    function dataIDS() external view returns (dataID[] memory) {
+        return dataIDs;
     }
 
     /**
@@ -111,30 +111,30 @@ contract Lens is UsingTellor {
     }
 
     /**
-     * @param dataID is the ID for which the function returns the values for. When dataID is negative it returns the values for all dataIDs.
-     * @param count is the number of last values to return.
+     * @param _dataID is the ID for which the function returns the values for. When dataID is negative it returns the values for all dataIDs.
+     * @param _count is the number of last values to return.
      * @return Returns the last N values for a request ID.
      */
-    function getLastValues(uint256 dataID, uint256 count)
+    function getLastValues(uint256 _dataID, uint256 _count)
         public
         view
         returns (value[] memory)
     {
-        uint256 totalCount = master.getNewValueCountbyRequestId(dataID);
-        if (count > totalCount) {
-            count = totalCount;
+        uint256 totalCount = master.getNewValueCountbyRequestId(_dataID);
+        if (_count > totalCount) {
+            _count = totalCount;
         }
-        value[] memory values = new value[](count);
-        for (uint256 i = 0; i < count; i++) {
+        value[] memory values = new value[](_count);
+        for (uint256 i = 0; i < _count; i++) {
             uint256 ts =
                 master.getTimestampbyRequestIDandIndex(
-                    dataID,
+                    _dataID,
                     totalCount - i - 1
                 );
-            uint256 v = master.retrieveData(dataID, ts);
+            uint256 v = master.retrieveData(_dataID, ts);
             values[i] = value({
-                id: dataID,
-                name: DataIDs[dataID].name,
+                id: _dataID,
+                name: dataIDs[_dataID].name,
                 timestamp: ts,
                 value: v
             });
@@ -152,9 +152,9 @@ contract Lens is UsingTellor {
         view
         returns (value[] memory)
     {
-        value[] memory values = new value[](count * DataIDs.length);
-        for (uint256 i = 0; i < DataIDs.length; i++) {
-            value[] memory v = getLastValues(DataIDs[i].id, count);
+        value[] memory values = new value[](count * dataIDs.length);
+        for (uint256 i = 0; i < dataIDs.length; i++) {
+            value[] memory v = getLastValues(dataIDs[i].id, count);
             for (uint256 ii = 0; ii < v.length; ii++) {
                 values[i + ii] = v[ii];
             }
@@ -180,7 +180,7 @@ contract Lens is UsingTellor {
     /**
      * @return Returns the contract pending owner.
      */
-    function pending_owner() external view returns (address) {
+    function pendingOwner() external view returns (address) {
         return master.getAddressVars(keccak256("pending_owner"));
     }
 
@@ -192,11 +192,11 @@ contract Lens is UsingTellor {
     }
 
     /**
-     * @param dataID is the ID for which the function returns the total tips.
+     * @param _dataID is the ID for which the function returns the total tips.
      * @return Returns the current tips for a give request ID.
      */
-    function totalTip(uint256 dataID) external view returns (uint256) {
-        return master.getRequestUintVars(dataID, keccak256("totalTip"));
+    function totalTip(uint256 _dataID) external view returns (uint256) {
+        return master.getRequestUintVars(_dataID, keccak256("totalTip"));
     }
 
     /**

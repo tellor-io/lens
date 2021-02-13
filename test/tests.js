@@ -13,7 +13,7 @@ describe("All tests", function () {
   it("CRUD for data IDs", async function () {
     // Test initial state.
     {
-      let res = await toTest.DataIDS();
+      let res = await toTest.dataIDS();
 
       for (i = 0; i < res.length; i++) {
         expect(res[i].id).to.equal(dataIDs[i].id);
@@ -31,7 +31,7 @@ describe("All tests", function () {
         }
       ]
       await toTest.replaceDataIDs(IDs);
-      let res = await toTest.DataIDS();
+      let res = await toTest.dataIDS();
 
       expect(res.length).to.equal(IDs.length);
       expect(res[0].id).to.equal(IDs[0].id);
@@ -41,14 +41,14 @@ describe("All tests", function () {
 
     // Test pushing a new data ID a single one.
     {
-      let resBefore = await toTest.DataIDS();
+      let resBefore = await toTest.dataIDS();
       let newID = {
         id: 999,
         granularity: 1,
         name: "cool"
       }
       await toTest.pushDataID(newID);
-      let resAfter = await toTest.DataIDS();
+      let resAfter = await toTest.dataIDS();
 
       expect(resAfter.length).to.equal(resBefore.length + 1);
       expect(resAfter[resAfter.length - 1].id).to.equal(newID.id);
@@ -65,7 +65,7 @@ describe("All tests", function () {
         name: "cool"
       }
       await toTest.setDataID(id, updatedID);
-      let res = await toTest.DataIDS();
+      let res = await toTest.dataIDS();
 
       expect(res[id].id).to.equal(updatedID.id);
       expect(res[id].granularity).to.equal(updatedID.granularity);
