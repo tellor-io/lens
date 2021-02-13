@@ -39,13 +39,13 @@ interface TellorMaster {
 contract Lens is UsingTellor {
     TellorMaster public master;
 
-    struct dataID {
+    struct DataID {
         uint256 id;
         string name;
         uint256 granularity;
     }
 
-    struct value {
+    struct Value {
         uint256 id;
         string name;
         uint256 timestamp;
@@ -54,9 +54,9 @@ contract Lens is UsingTellor {
 
     address private admin;
 
-    dataID[] public dataIDs;
+    DataID[] public dataIDs;
 
-    constructor(address payable _master, dataID[] memory _dataIDs)
+    constructor(address payable _master, DataID[] memory _dataIDs)
         UsingTellor(_master)
     {
         master = TellorMaster(_master);
@@ -76,22 +76,22 @@ contract Lens is UsingTellor {
         admin = _admin;
     }
 
-    function replaceDataIDs(dataID[] memory _dataIDs) external onlyAdmin {
+    function replaceDataIDs(DataID[] memory _dataIDs) external onlyAdmin {
         delete dataIDs;
         for (uint256 i = 0; i < _dataIDs.length; i++) {
             dataIDs.push(_dataIDs[i]);
         }
     }
 
-    function setDataID(uint256 _id, dataID memory _dataID) external onlyAdmin {
+    function setDataID(uint256 _id, DataID memory _dataID) external onlyAdmin {
         dataIDs[_id] = _dataID;
     }
 
-    function pushDataID(dataID memory _dataID) external onlyAdmin {
+    function pushDataID(DataID memory _dataID) external onlyAdmin {
         dataIDs.push(_dataID);
     }
 
-    function dataIDS() external view returns (dataID[] memory) {
+    function dataIDS() external view returns (DataID[] memory) {
         return dataIDs;
     }
 
@@ -118,13 +118,13 @@ contract Lens is UsingTellor {
     function getLastValues(uint256 _dataID, uint256 _count)
         public
         view
-        returns (value[] memory)
+        returns (Value[] memory)
     {
         uint256 totalCount = master.getNewValueCountbyRequestId(_dataID);
         if (_count > totalCount) {
             _count = totalCount;
         }
-        value[] memory values = new value[](_count);
+        Value[] memory values = new Value[](_count);
         for (uint256 i = 0; i < _count; i++) {
             uint256 ts =
                 master.getTimestampbyRequestIDandIndex(
@@ -132,7 +132,7 @@ contract Lens is UsingTellor {
                     totalCount - i - 1
                 );
             uint256 v = master.retrieveData(_dataID, ts);
-            values[i] = value({
+            values[i] = Value({
                 id: _dataID,
                 name: dataIDs[_dataID].name,
                 timestamp: ts,
@@ -150,11 +150,11 @@ contract Lens is UsingTellor {
     function getAllLastValues(uint256 count)
         external
         view
-        returns (value[] memory)
+        returns (Value[] memory)
     {
-        value[] memory values = new value[](count * dataIDs.length);
+        Value[] memory values = new Value[](count * dataIDs.length);
         for (uint256 i = 0; i < dataIDs.length; i++) {
-            value[] memory v = getLastValues(dataIDs[i].id, count);
+            Value[] memory v = getLastValues(dataIDs[i].id, count);
             for (uint256 ii = 0; ii < v.length; ii++) {
                 values[i + ii] = v[ii];
             }
