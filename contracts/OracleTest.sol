@@ -12,7 +12,7 @@ import "tellorcore/contracts/TellorGetters.sol";
 import "tellorcore/contracts/Tellor.sol";
 import "tellorcore/contracts/TellorMaster.sol";
 
-contract TellorTest is
+contract OracleTest is
     Tellor // TellorMaster has too many legacy dependancies to just import Tellor.
 {
     constructor() public {

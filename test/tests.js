@@ -230,7 +230,7 @@ beforeEach(async function () {
   // Deploy the main contract wrapped in a testing contract.
   // The helper contract allows setting up the required internal state.
   fact = await ethers.getContractFactory(
-    "TellorTest",
+    "OracleTest",
     {
       libraries: {
         TellorTransfer: transfer.address,
@@ -245,11 +245,13 @@ beforeEach(async function () {
 
 
   // Deploy the actual contract to test.
-  fact = await ethers.getContractFactory("Lens");
-  toTest = await fact.deploy(tellor.address, dataIDs);
+  fact = await ethers.getContractFactory("Main");
+  toTest = await fact.deploy(tellor.address);
   await toTest.deployed();
 
   // Set the initial required state for the test tasks.
   await tellor.setBalance(owner.address, 1000);
   await tellor.setBalance(tellor.address, 1e10);
+
+  await toTest.replaceDataIDs(dataIDs);
 });

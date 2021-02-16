@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import "usingtellor/contracts/UsingTellor.sol";
 import "hardhat/console.sol";
 
-interface TellorMaster {
+interface Oracle {
     function getUintVar(bytes32 _data) external view returns (uint256);
 
     function getNewValueCountbyRequestId(uint256 _requestId)
@@ -33,11 +33,11 @@ interface TellorMaster {
 }
 
 /**
- * @title Tellor Lens
- * @dev A contract to aggregate and simplify calls to the Tellor oracle.
+ * @title Tellor Lens main contract
+ * @dev Aggregate and simplify calls to the Tellor oracle.
  **/
-contract Lens is UsingTellor {
-    TellorMaster public master;
+contract Main is UsingTellor {
+    Oracle public master;
 
     struct DataID {
         uint256 id;
@@ -58,7 +58,7 @@ contract Lens is UsingTellor {
     mapping(uint256 => uint256) public dataIDsMap;
 
     constructor(address payable _master) UsingTellor(_master) {
-        master = TellorMaster(_master);
+        master = Oracle(_master);
         admin = msg.sender;
     }
 
