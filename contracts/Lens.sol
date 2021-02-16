@@ -55,16 +55,11 @@ contract Lens is UsingTellor {
     address private admin;
 
     DataID[] public dataIDs;
+    mapping(uint256 => uint256) public dataIDsMap;
 
-    constructor(address payable _master, DataID[] memory _dataIDs)
-        UsingTellor(_master)
-    {
+    constructor(address payable _master) UsingTellor(_master) {
         master = TellorMaster(_master);
         admin = msg.sender;
-
-        for (uint256 i = 0; i < _dataIDs.length; i++) {
-            dataIDs.push(_dataIDs[i]);
-        }
     }
 
     modifier onlyAdmin {
@@ -80,18 +75,21 @@ contract Lens is UsingTellor {
         delete dataIDs;
         for (uint256 i = 0; i < _dataIDs.length; i++) {
             dataIDs.push(_dataIDs[i]);
+            dataIDsMap[_dataIDs[i].id] = i;
         }
     }
 
     function setDataID(uint256 _id, DataID memory _dataID) external onlyAdmin {
         dataIDs[_id] = _dataID;
+        dataIDsMap[_dataID.id] = _id;
     }
 
     function pushDataID(DataID memory _dataID) external onlyAdmin {
         dataIDs.push(_dataID);
+        dataIDsMap[_dataID.id] = dataIDs.length - 1;
     }
 
-    function dataIDS() external view returns (DataID[] memory) {
+    function dataIDsAll() external view returns (DataID[] memory) {
         return dataIDs;
     }
 
@@ -134,7 +132,7 @@ contract Lens is UsingTellor {
             uint256 v = master.retrieveData(_dataID, ts);
             values[i] = Value({
                 id: _dataID,
-                name: dataIDs[_dataID].name,
+                name: dataIDs[dataIDsMap[_dataID]].name,
                 timestamp: ts,
                 value: v
             });
@@ -147,19 +145,20 @@ contract Lens is UsingTellor {
      * @param count is the number of last values to return.
      * @return Returns the last N values for a data IDs.
      */
-    function getAllLastValues(uint256 count)
+    function getLastValuesAll(uint256 count)
         external
         view
         returns (Value[] memory)
     {
         Value[] memory values = new Value[](count * dataIDs.length);
+        uint256 pos = 0;
         for (uint256 i = 0; i < dataIDs.length; i++) {
             Value[] memory v = getLastValues(dataIDs[i].id, count);
             for (uint256 ii = 0; ii < v.length; ii++) {
-                values[i + ii] = v[ii];
+                values[pos] = v[ii];
+                pos++;
             }
         }
-
         return values;
     }
 
@@ -203,7 +202,7 @@ contract Lens is UsingTellor {
      * @return Returns the getUintVar variable named after the function name.
      * This variable tracks the last time when a value was submitted.
      */
-    function timeOfLastNewValue() external view returns (uint256) {
+    function timeOfLastValue() external view returns (uint256) {
         return master.getUintVar(keccak256("timeOfLastNewValue"));
     }
 

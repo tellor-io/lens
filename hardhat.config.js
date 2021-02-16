@@ -1,8 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
-require("./dataIDs");
 require("dotenv").config();
-
 const { dataIDs } = require("./dataIDs");
 
 
@@ -18,12 +16,12 @@ task("deploy", "Deploy and verify the contracts")
   .addParam("oracleAddress", "The master contract address")
   .setAction(async taskArgs => {
     var oracleAddress = taskArgs.oracleAddress
-    run("compile");
+    await run("compile");
     const t = await ethers.getContractFactory("Lens");
-    const contract = await t.deploy(oracleAddress, dataIDs);
+    const contract = await t.deploy(oracleAddress);
     await contract.deployed();
-    console.log("contract deployed to:", contract.address);
-    console.log("    transaction hash:", contract.deployTransaction.hash);
+    console.log("contract deployed to:", "https://" + taskArgs.network + ".etherscan.io/address/" + contract.address);
+    console.log("    transaction hash:", "https://" + taskArgs.network + ".etherscan.io/tx/" + contract.deployTransaction.hash);
 
     // Wait for few confirmed transactions.
     // Otherwise the etherscan api doesn't find the deployed contract.
@@ -32,12 +30,14 @@ task("deploy", "Deploy and verify the contracts")
 
     console.log('submitting for etherscan verification...');
 
-    await run(
-      "verify", {
+    await run("verify:verify", {
       address: contract.address,
-      constructorArguments: [oracleAddress, dataIDs],
+      constructorArguments: [oracleAddress],
     },
     )
+
+    console.log("Adding Data IDs")
+    await contract.replaceDataIDs(dataIDs);
   });
 
 /**

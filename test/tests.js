@@ -13,7 +13,7 @@ describe("All tests", function () {
   it("CRUD for data IDs", async function () {
     // Test initial state.
     {
-      let res = await toTest.dataIDS();
+      let res = await toTest.dataIDsAll();
 
       for (i = 0; i < res.length; i++) {
         expect(res[i].id).to.equal(dataIDs[i].id);
@@ -31,7 +31,7 @@ describe("All tests", function () {
         }
       ]
       await toTest.replaceDataIDs(IDs);
-      let res = await toTest.dataIDS();
+      let res = await toTest.dataIDsAll();
 
       expect(res.length).to.equal(IDs.length);
       expect(res[0].id).to.equal(IDs[0].id);
@@ -41,14 +41,14 @@ describe("All tests", function () {
 
     // Test pushing a new data ID a single one.
     {
-      let resBefore = await toTest.dataIDS();
+      let resBefore = await toTest.dataIDsAll();
       let newID = {
         id: 999,
         granularity: 1,
         name: "cool"
       }
       await toTest.pushDataID(newID);
-      let resAfter = await toTest.dataIDS();
+      let resAfter = await toTest.dataIDsAll();
 
       expect(resAfter.length).to.equal(resBefore.length + 1);
       expect(resAfter[resAfter.length - 1].id).to.equal(newID.id);
@@ -65,7 +65,7 @@ describe("All tests", function () {
         name: "cool"
       }
       await toTest.setDataID(id, updatedID);
-      let res = await toTest.dataIDS();
+      let res = await toTest.dataIDsAll();
 
       expect(res[id].id).to.equal(updatedID.id);
       expect(res[id].granularity).to.equal(updatedID.granularity);
@@ -82,7 +82,7 @@ describe("All tests", function () {
   it("Should return the current reward amount", async function () {
     // 5min past last submitted value.
     {
-      timeOfLastValue = parseInt(await toTest.timeOfLastNewValue());
+      timeOfLastValue = parseInt(await toTest.timeOfLastValue());
       await waffle.provider.send("evm_setNextBlockTimestamp", [timeOfLastValue + 300]);
       await waffle.provider.send("evm_mine");
       expect(await toTest.currentReward()).to.equal(BigInt(1e18));
@@ -117,48 +117,61 @@ describe("All tests", function () {
     await tellor.connect(acc4).depositStake();
     await tellor.connect(acc5).depositStake();
 
-    let val1_ID1 = 11;
-    await tellor.connect(acc1).submitMiningSolution("", [1, 2, 3, 4, 5], [val1_ID1, 00, 00, 00, 00]);
-    await tellor.connect(acc2).submitMiningSolution("", [1, 2, 3, 4, 5], [val1_ID1, 00, 00, 00, 00]);
-    await tellor.connect(acc3).submitMiningSolution("", [1, 2, 3, 4, 5], [val1_ID1, 00, 00, 00, 00]);
-    await tellor.connect(acc4).submitMiningSolution("", [1, 2, 3, 4, 5], [val1_ID1, 00, 00, 00, 00]);
-    await tellor.connect(acc5).submitMiningSolution("", [1, 2, 3, 4, 5], [val1_ID1, 00, 00, 00, 00]);
-    timeOfLastValue1 = parseInt(await toTest.timeOfLastNewValue());
+    let valExp1 = {}
+    valExp1[1] = 11;
+    valExp1[2] = 12;
+    valExp1[3] = 13;
+    valExp1[4] = 14;
+    valExp1[5] = 15;
+
+    await tellor.connect(acc1).submitMiningSolution("", [1, 2, 3, 4, 5], [valExp1[1], valExp1[2], valExp1[3], valExp1[4], valExp1[5]]);
+    await tellor.connect(acc2).submitMiningSolution("", [1, 2, 3, 4, 5], [valExp1[1], valExp1[2], valExp1[3], valExp1[4], valExp1[5]]);
+    await tellor.connect(acc3).submitMiningSolution("", [1, 2, 3, 4, 5], [valExp1[1], valExp1[2], valExp1[3], valExp1[4], valExp1[5]]);
+    await tellor.connect(acc4).submitMiningSolution("", [1, 2, 3, 4, 5], [valExp1[1], valExp1[2], valExp1[3], valExp1[4], valExp1[5]]);
+    await tellor.connect(acc5).submitMiningSolution("", [1, 2, 3, 4, 5], [valExp1[1], valExp1[2], valExp1[3], valExp1[4], valExp1[5]]);
+    timeOfLastValue1 = parseInt(await toTest.timeOfLastValue());
 
     await waffle.provider.send("evm_setNextBlockTimestamp", [timeOfLastValue1 + 9000]); // Forward 15min so that it takes any nonce solution.
-    let val2_ID1 = 12;
-    let val_ID2 = 22;
-    let val_ID3 = 33;
-    await tellor.connect(acc1).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, val_ID3, val_ID2, val2_ID1]);
-    await tellor.connect(acc2).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, val_ID3, val_ID2, val2_ID1]);
-    await tellor.connect(acc3).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, val_ID3, val_ID2, val2_ID1]);
-    await tellor.connect(acc4).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, val_ID3, val_ID2, val2_ID1]);
-    await tellor.connect(acc5).submitMiningSolution("", [5, 4, 3, 2, 1], [00, 00, val_ID3, val_ID2, val2_ID1]);
-    timeOfLastValue2 = parseInt(await toTest.timeOfLastNewValue());
+    let valExp2 = {}
+    valExp2[1] = 21;
+    valExp2[2] = 22;
+    valExp2[3] = 23;
+    valExp2[4] = 24;
+    valExp2[5] = 25;
+    await tellor.connect(acc1).submitMiningSolution("", [5, 4, 3, 2, 1], [valExp2[5], valExp2[4], valExp2[3], valExp2[2], valExp2[1]]);
+    await tellor.connect(acc2).submitMiningSolution("", [5, 4, 3, 2, 1], [valExp2[5], valExp2[4], valExp2[3], valExp2[2], valExp2[1]]);
+    await tellor.connect(acc3).submitMiningSolution("", [5, 4, 3, 2, 1], [valExp2[5], valExp2[4], valExp2[3], valExp2[2], valExp2[1]]);
+    await tellor.connect(acc4).submitMiningSolution("", [5, 4, 3, 2, 1], [valExp2[5], valExp2[4], valExp2[3], valExp2[2], valExp2[1]]);
+    await tellor.connect(acc5).submitMiningSolution("", [5, 4, 3, 2, 1], [valExp2[5], valExp2[4], valExp2[3], valExp2[2], valExp2[1]]);
+    timeOfLastValue2 = parseInt(await toTest.timeOfLastValue());
 
 
     let res = await toTest.getLastValues(1, 2)
 
     // The order of the returned values is reversed. Newest to oldest.
-    expect(res[0].value).to.equal(val2_ID1);
+    expect(res[0].value).to.equal(valExp2[1]);
     expect(res[0].timestamp).to.equal(timeOfLastValue2);
 
-    expect(res[1].value).to.equal(val1_ID1);
+    expect(res[1].value).to.equal(valExp1[1]);
     expect(res[1].timestamp).to.equal(timeOfLastValue1);
 
 
-    // When calling getAllLastValues should get the same result, but without specifing which data ID the request is for.
-    res = await toTest.getAllLastValues(2)
+    // When calling getLastValuesAll should get the same result, but without specifing which data ID the request is for.
+    res = await toTest.getLastValuesAll(2)
     expect(res.length).to.equal(2 * dataIDs.length);
 
-    expect(res[0].value).to.equal(val2_ID1);
-    expect(res[0].timestamp).to.equal(timeOfLastValue2);
+    let pos = 1
 
-    expect(res[1].value).to.equal(val_ID2);
-    expect(res[1].timestamp).to.equal(timeOfLastValue2);
-
-    expect(res[2].value).to.equal(val_ID3);
-    expect(res[2].timestamp).to.equal(timeOfLastValue2);
+    for (let index = 0; index < 10; index++) {
+      if (index % 2) {
+        expect(res[index].value).to.equal(valExp1[pos]);
+        expect(res[index].timestamp).to.equal(timeOfLastValue1);
+        pos++
+      } else {
+        expect(res[index].value).to.equal(valExp2[pos]);
+        expect(res[index].timestamp).to.equal(timeOfLastValue2);
+      }
+    }
 
     // A request over the max values count should still return the max available.
     res = await toTest.getLastValues(1, 9999);
