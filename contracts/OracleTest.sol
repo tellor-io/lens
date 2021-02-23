@@ -16,14 +16,14 @@ contract OracleTest is
     Tellor // TellorMaster has too many legacy dependancies to just import Tellor.
 {
     constructor() public {
-        tellor.uintVars[keccak256("stakeAmount")] = 500e18;
-        tellor.uintVars[keccak256("disputeFee")] = 500e18;
+        tellor.uintVars[keccak256("_STAKE_AMOUNT")] = 500e18;
+        tellor.uintVars[keccak256("_DISPUTE_FEE")] = 500e18;
 
-        tellor.uintVars[keccak256("difficulty")] = 1;
-        tellor.uintVars[keccak256("targetMiners")] = 100;
+        tellor.uintVars[keccak256("_DIFFICULTY")] = 1;
+        tellor.uintVars[keccak256("_TARGET_MINERS")] = 100;
 
         // This is used when calculating the current reward so can't be zero.
-        tellor.uintVars[keccak256("timeOfLastNewValue")] = now;
+        tellor.uintVars[keccak256("_TIME_OF_LAST_NEW_VALUE")] = now;
 
         // Set the initial request ids to mine.
         tellor.currentMiners[0].value = 1;
@@ -32,7 +32,7 @@ contract OracleTest is
         tellor.currentMiners[3].value = 4;
         tellor.currentMiners[4].value = 5;
 
-        tellor.addressVars[keccak256("_owner")] = msg.sender;
+        tellor.addressVars[keccak256("_OWNER")] = msg.sender;
     }
 
     function setBalance(address _address, uint256 _amount) public {

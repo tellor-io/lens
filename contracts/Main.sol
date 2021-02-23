@@ -37,7 +37,7 @@ interface Oracle {
  * @dev Aggregate and simplify calls to the Tellor oracle.
  **/
 contract Main is UsingTellor {
-    Oracle public master;
+    Oracle public oracle;
 
     struct DataID {
         uint256 id;
@@ -57,14 +57,18 @@ contract Main is UsingTellor {
     DataID[] public dataIDs;
     mapping(uint256 => uint256) public dataIDsMap;
 
-    constructor(address payable _master) UsingTellor(_master) {
-        master = Oracle(_master);
+    constructor(address payable _oracle) UsingTellor(_oracle) {
+        oracle = Oracle(_oracle);
         admin = msg.sender;
     }
 
     modifier onlyAdmin {
         require(msg.sender == admin, "not an admin");
         _;
+    }
+
+    function setOracle(address _oracle) external onlyAdmin {
+        oracle = Oracle(_oracle);
     }
 
     function setAdmin(address _admin) external onlyAdmin {
@@ -99,12 +103,12 @@ contract Main is UsingTellor {
     function currentReward() external view returns (uint256) {
         uint256 timeDiff =
             block.timestamp -
-                master.getUintVar(keccak256("timeOfLastNewValue"));
+                oracle.getUintVar(keccak256("_TIME_OF_LAST_NEW_VALUE"));
         uint256 rewardAmount = 1e18;
 
         uint256 rewardAccumulated = (timeDiff * rewardAmount) / 300; // 1TRB every 6 minutes.
 
-        uint256 tip = master.getUintVar(keccak256("currentTotalTips")) / 10; // Half of the tips are burnt.
+        uint256 tip = oracle.getUintVar(keccak256("_CURRENT_TOTAL_TIPS")) / 10; // Half of the tips are burnt.
         return rewardAccumulated + tip;
     }
 
@@ -118,18 +122,18 @@ contract Main is UsingTellor {
         view
         returns (Value[] memory)
     {
-        uint256 totalCount = master.getNewValueCountbyRequestId(_dataID);
+        uint256 totalCount = oracle.getNewValueCountbyRequestId(_dataID);
         if (_count > totalCount) {
             _count = totalCount;
         }
         Value[] memory values = new Value[](_count);
         for (uint256 i = 0; i < _count; i++) {
             uint256 ts =
-                master.getTimestampbyRequestIDandIndex(
+                oracle.getTimestampbyRequestIDandIndex(
                     _dataID,
                     totalCount - i - 1
                 );
-            uint256 v = master.retrieveData(_dataID, ts);
+            uint256 v = oracle.retrieveData(_dataID, ts);
             values[i] = Value({
                 id: _dataID,
                 name: dataIDs[dataIDsMap[_dataID]].name,
@@ -165,29 +169,29 @@ contract Main is UsingTellor {
     /**
      * @return Returns the contract deity that can do things at will.
      */
-    function _deity() external view returns (address) {
-        return master.getAddressVars(keccak256("_deity"));
+    function deity() external view returns (address) {
+        return oracle.getAddressVars(keccak256("_DEITY"));
     }
 
     /**
      * @return Returns the contract owner address.
      */
-    function _owner() external view returns (address) {
-        return master.getAddressVars(keccak256("_owner"));
+    function owner() external view returns (address) {
+        return oracle.getAddressVars(keccak256("_OWNER"));
     }
 
     /**
      * @return Returns the contract pending owner.
      */
     function pendingOwner() external view returns (address) {
-        return master.getAddressVars(keccak256("pending_owner"));
+        return oracle.getAddressVars(keccak256("_PENDING_OWNER"));
     }
 
     /**
      * @return Returns the contract address that executes all proxy calls.
      */
     function tellorContract() external view returns (address) {
-        return master.getAddressVars(keccak256("tellorContract"));
+        return oracle.getAddressVars(keccak256("_TELLOR_CONTRACT"));
     }
 
     /**
@@ -195,7 +199,7 @@ contract Main is UsingTellor {
      * @return Returns the current tips for a give request ID.
      */
     function totalTip(uint256 _dataID) external view returns (uint256) {
-        return master.getRequestUintVars(_dataID, keccak256("totalTip"));
+        return oracle.getRequestUintVars(_dataID, keccak256("_TOTAL_TIP"));
     }
 
     /**
@@ -203,7 +207,7 @@ contract Main is UsingTellor {
      * This variable tracks the last time when a value was submitted.
      */
     function timeOfLastValue() external view returns (uint256) {
-        return master.getUintVar(keccak256("timeOfLastNewValue"));
+        return oracle.getUintVar(keccak256("_TIME_OF_LAST_NEW_VALUE"));
     }
 
     /**
@@ -211,15 +215,15 @@ contract Main is UsingTellor {
      * This variable tracks the total number of requests from user thorugh the addTip function.
      */
     function requestCount() external view returns (uint256) {
-        return master.getUintVar(keccak256("requestCount"));
+        return oracle.getUintVar(keccak256("_REQUEST_COUNT"));
     }
 
     /**
      * @return Returns the getUintVar variable named after the function name.
      * This variable tracks the total oracle blocks.
      */
-    function _tBlock() external view returns (uint256) {
-        return master.getUintVar(keccak256("_tBlock"));
+    function tBlock() external view returns (uint256) {
+        return oracle.getUintVar(keccak256("_T_BLOCK"));
     }
 
     /**
@@ -228,7 +232,7 @@ contract Main is UsingTellor {
      *
      */
     function difficulty() external view returns (uint256) {
-        return master.getUintVar(keccak256("difficulty"));
+        return oracle.getUintVar(keccak256("_DIFFICULTY"));
     }
 
     /**
@@ -237,7 +241,7 @@ contract Main is UsingTellor {
      * the time diff since the last oracle block.
      */
     function timeTarget() external view returns (uint256) {
-        return master.getUintVar(keccak256("timeTarget"));
+        return oracle.getUintVar(keccak256("_TIME_TARGET"));
     }
 
     /**
@@ -245,7 +249,7 @@ contract Main is UsingTellor {
      * This variable tracks the highest api/timestamp PayoutPool.
      */
     function currentTotalTips() external view returns (uint256) {
-        return master.getUintVar(keccak256("currentTotalTips"));
+        return oracle.getUintVar(keccak256("_CURRENT_TOTAL_TIPS"));
     }
 
     /**
@@ -253,7 +257,7 @@ contract Main is UsingTellor {
      * This variable tracks the number of miners who have mined this value so far.
      */
     function slotProgress() external view returns (uint256) {
-        return master.getUintVar(keccak256("slotProgress"));
+        return oracle.getUintVar(keccak256("_SLOT_PROGRESS"));
     }
 
     /**
@@ -261,14 +265,14 @@ contract Main is UsingTellor {
      * This variable tracks the cost to dispute a mined value.
      */
     function disputeFee() external view returns (uint256) {
-        return master.getUintVar(keccak256("disputeFee"));
+        return oracle.getUintVar(keccak256("_DISPUTE_FEE"));
     }
 
     /**
      * @return Returns the getUintVar variable named after the function name.
      */
     function disputeCount() external view returns (uint256) {
-        return master.getUintVar(keccak256("disputeCount"));
+        return oracle.getUintVar(keccak256("_DISPUTE_COUNT"));
     }
 
     /**
@@ -276,14 +280,14 @@ contract Main is UsingTellor {
      * This variable tracks stake amount required to become a miner.
      */
     function stakeAmount() external view returns (uint256) {
-        return master.getUintVar(keccak256("stakeAmount"));
+        return oracle.getUintVar(keccak256("_STAKE_AMOUNT"));
     }
 
     /**
      * @return Returns the getUintVar variable named after the function name.
      * This variable tracks the number of parties currently staked.
      */
-    function stakerCount() external view returns (uint256) {
-        return master.getUintVar(keccak256("stakerCount"));
+    function stakeCount() external view returns (uint256) {
+        return oracle.getUintVar(keccak256("_STAKE_AMOUNT"));
     }
 }

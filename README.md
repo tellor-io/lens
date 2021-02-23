@@ -2,13 +2,13 @@
 
 Deploy on Rinkeby
 ```
-hardhat deploy --network rinkeby  --oracle-address 0xfe41cb708cd98c5b20423433309e55b53f79134a
+hardhat deploy --network rinkeby  --oracle-address 0x88dF592F8eb5D7Bd38bFeF7dEb0fBc02cf3778a0
 ```
 
 
 Deploy on Mainnet
 ```
-hardhat deploy --network mainnet --oracle-address 0x0Ba45A8b5d5575935B8158a88C631E9F9C95a2e5
+hardhat deploy --network mainnet --oracle-address 0x88dF592F8eb5D7Bd38bFeF7dEb0fBc02cf3778a0
 ```
 
 For any strange errors

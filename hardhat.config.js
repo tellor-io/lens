@@ -17,7 +17,7 @@ task("deploy", "Deploy and verify the contracts")
   .setAction(async taskArgs => {
     var oracleAddress = taskArgs.oracleAddress
     await run("compile");
-    const t = await ethers.getContractFactory("Lens");
+    const t = await ethers.getContractFactory("Main");
     const contract = await t.deploy(oracleAddress);
     await contract.deployed();
     console.log("contract deployed to:", "https://" + taskArgs.network + ".etherscan.io/address/" + contract.address);
@@ -65,7 +65,13 @@ module.exports = {
   solidity: {
     compilers: [
       { version: "0.5.17" },
-      { version: "0.7.6", }
+      {
+        version: "0.7.6",
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      }
     ]
   },
 };
