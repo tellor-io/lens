@@ -28,16 +28,16 @@ task("deploy", "Deploy and verify the contracts")
     console.log('waiting for tx confirmation...');
     await contract.deployTransaction.wait(3)
 
-    console.log('submitting for etherscan verification...');
-
-    await run("verify:verify", {
-      address: contract.address,
-      constructorArguments: [oracleAddress],
-    },
-    )
 
     console.log("Adding Data IDs")
     await contract.replaceDataIDs(dataIDs);
+
+    console.log('submitting for etherscan verification...');
+    await run("verify:verify", {
+      address: contract.address,
+      constructorArguments: [oracleAddress],
+    })
+
   });
 
 /**

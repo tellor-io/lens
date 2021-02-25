@@ -46,10 +46,10 @@ contract Main is UsingTellor {
     }
 
     struct Value {
-        uint256 id;
-        string name;
+        DataID meta;
         uint256 timestamp;
         uint256 value;
+        uint256 tip;
     }
 
     address private admin;
@@ -135,10 +135,14 @@ contract Main is UsingTellor {
                 );
             uint256 v = oracle.retrieveData(_dataID, ts);
             values[i] = Value({
-                id: _dataID,
-                name: dataIDs[dataIDsMap[_dataID]].name,
+                meta: DataID({
+                    id: _dataID,
+                    name: dataIDs[dataIDsMap[_dataID]].name,
+                    granularity: dataIDs[dataIDsMap[_dataID]].granularity
+                }),
                 timestamp: ts,
-                value: v
+                value: v,
+                tip: totalTip(_dataID)
             });
         }
 
@@ -198,7 +202,7 @@ contract Main is UsingTellor {
      * @param _dataID is the ID for which the function returns the total tips.
      * @return Returns the current tips for a give request ID.
      */
-    function totalTip(uint256 _dataID) external view returns (uint256) {
+    function totalTip(uint256 _dataID) public view returns (uint256) {
         return oracle.getRequestUintVars(_dataID, keccak256("_TOTAL_TIP"));
     }
 
