@@ -7,29 +7,39 @@ import "usingtellor/contracts/UsingTellor.sol";
 import "hardhat/console.sol";
 
 interface Oracle {
-    function getUintVar(bytes32 _data) external view returns (uint256);
 
-    function getNewValueCountbyRequestId(uint256 _requestId)
-        external
-        view
-        returns (uint256);
+    //reporter, value, name for most recent query IDs
 
-    function getTimestampbyRequestIDandIndex(uint256 _requestID, uint256 _index)
-        external
-        view
-        returns (uint256);
+    function getCurrentValue(bytes32 _queryId) external view returns(bytes memory);
 
-    function retrieveData(uint256 _requestId, uint256 _timestamp)
-        external
-        view
-        returns (uint256);
+    function getReportTimestampByIndex(bytes32 _queryId, uint256 _index) external view returns(uint256);
 
-    function getAddressVars(bytes32 _data) external view returns (address);
+    function getReporterByTimestamp(bytes32 _queryId, uint256 _timestamp) external view returns(address);
 
-    function getRequestUintVars(uint256 _requestId, bytes32 _data)
-        external
-        view
-        returns (uint256);
+    function getValueByTimestamp(bytes32 _queryId, uint256 _timestamp) external view returns(bytes memory);
+
+    //reporter, value, name for most recent query IDs (w/ ability to dispute)
+
+    //event type, description, timestamp, hash on a user's address
+
+    function getStakerInfo(address _sender) external view returns(uint256); //for reporter's status. (statuses pinned on tellor core discord)
+
+    function getReportsSubmittedByAddress(address _reporter) external view returns(uint256);
+
+    function getReporterLastTimestamp(address _reporter) external view returns(uint256);
+
+    //get last values on a request id
+
+    function getTimestampCountById(bytes32 _queryId) external view returns(uint256);
+
+    function getTimeOfLastNewValue() external view returns(uint256);
+
+    function getCurrentReward(bytes32 _queryId) public view returns (uint256, uint256);
+}
+
+interface Master {
+    
+        
 }
 
 /**
@@ -100,16 +110,8 @@ contract Main is UsingTellor {
     /**
      * @return Returns the current reward amount.
      */
-    function currentReward() external view returns (uint256) {
-        uint256 timeDiff =
-            block.timestamp -
-                oracle.getUintVar(keccak256("_TIME_OF_LAST_NEW_VALUE"));
-        uint256 rewardAmount = 1e18;
-
-        uint256 rewardAccumulated = (timeDiff * rewardAmount) / 300; // 1TRB every 6 minutes.
-
-        uint256 tip = oracle.getUintVar(keccak256("_CURRENT_TOTAL_TIPS")) / 10; // Half of the tips are burnt.
-        return rewardAccumulated + tip;
+    function getCurrentReward(bytes32 _queryId) external view returns (uint256) {
+        return oracle.getCurrentReward(_queryId);
     }
 
     /**
@@ -117,32 +119,32 @@ contract Main is UsingTellor {
      * @param _count is the number of last values to return.
      * @return Returns the last N values for a request ID.
      */
-    function getLastValues(uint256 _dataID, uint256 _count)
+    function getLastValues(bytes32 _queryId, uint256 _count)
         public
         view
         returns (Value[] memory)
     {
-        uint256 totalCount = oracle.getNewValueCountbyRequestId(_dataID);
+        uint256 totalCount = oracle.getTimestampCountById(_queryId); //replaced
         if (_count > totalCount) {
             _count = totalCount;
         }
         Value[] memory values = new Value[](_count);
         for (uint256 i = 0; i < _count; i++) {
             uint256 ts =
-                oracle.getTimestampbyRequestIDandIndex(
-                    _dataID,
+                oracle.getReportTimestampByIndex( //replaced
+                    _queryId,
                     totalCount - i - 1
                 );
-            uint256 v = oracle.retrieveData(_dataID, ts);
+            uint256 v = oracle.getValueByTimestamp(_queryId, ts); //replaced
             values[i] = Value({
                 meta: DataID({
-                    id: _dataID,
-                    name: dataIDs[dataIDsMap[_dataID]].name,
-                    granularity: dataIDs[dataIDsMap[_dataID]].granularity
+                    id: _queryId,
+                    name: dataIDs[dataIDsMap[_queryId]].name,
+                    granularity: dataIDs[dataIDsMap[_queryId]].granularity
                 }),
                 timestamp: ts,
                 value: v,
-                tip: totalTip(_dataID)
+                tip: getTipsById(_queryId) //replaced
             });
         }
 
@@ -153,22 +155,22 @@ contract Main is UsingTellor {
      * @param count is the number of last values to return.
      * @return Returns the last N values for a data IDs.
      */
-    function getLastValuesAll(uint256 count)
-        external
-        view
-        returns (Value[] memory)
-    {
-        Value[] memory values = new Value[](count * dataIDs.length);
-        uint256 pos = 0;
-        for (uint256 i = 0; i < dataIDs.length; i++) {
-            Value[] memory v = getLastValues(dataIDs[i].id, count);
-            for (uint256 ii = 0; ii < v.length; ii++) {
-                values[pos] = v[ii];
-                pos++;
-            }
-        }
-        return values;
-    }
+    // function getLastValuesAll(uint256 count)
+    //     external
+    //     view
+    //     returns (Value[] memory)
+    // {
+    //     Value[] memory values = new Value[](count * dataIDs.length);
+    //     uint256 pos = 0;
+    //     for (uint256 i = 0; i < dataIDs.length; i++) {
+    //         Value[] memory v = getLastValues(dataIDs[i].id, count);
+    //         for (uint256 ii = 0; ii < v.length; ii++) {
+    //             values[pos] = v[ii];
+    //             pos++;
+    //         }
+    //     }
+    //     return values;
+    // }
 
     /**
      * @return Returns the contract deity that can do things at will.
