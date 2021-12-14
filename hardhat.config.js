@@ -47,6 +47,9 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
+      forking: {
+        url: `${process.env.MAINNET_FORK_URL}`,
+      }
     },
     rinkeby: {
       url: `${process.env.NODE_URL_RINKEBY}`,
@@ -66,7 +69,21 @@ module.exports = {
     compilers: [
       { version: "0.5.17" },
       {
+        version: "0.7.4",
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      },
+      {
         version: "0.7.6",
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      },
+      {
+        version: "0.8.3",
         optimizer: {
           enabled: true,
           runs: 200
