@@ -15,8 +15,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "tellorcore": "git://github.com/tellor-io/TellorCore.git#V2.5.0",
-    "tellorlegacy": "^1.1.2",
-    "web3": "^1.6.1"
+    "tellorlegacy": "^1.1.2"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
