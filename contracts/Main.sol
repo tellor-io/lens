@@ -6,46 +6,70 @@ pragma experimental ABIEncoderV2;
 import "hardhat/console.sol";
 
 interface Oracle {
-
     //reporter, value, name for most recent query IDs
 
-    function getCurrentValue(bytes32 _queryId) external view returns(bytes memory);
+    function getCurrentValue(bytes32 _queryId)
+        external
+        view
+        returns (bytes memory);
 
-    function getReportTimestampByIndex(bytes32 _queryId, uint256 _index) external view returns(uint256);
+    function getReportTimestampByIndex(bytes32 _queryId, uint256 _index)
+        external
+        view
+        returns (uint256);
 
-    function getReporterByTimestamp(bytes32 _queryId, uint256 _timestamp) external view returns(address);
+    function getReporterByTimestamp(bytes32 _queryId, uint256 _timestamp)
+        external
+        view
+        returns (address);
 
-    function getValueByTimestamp(bytes32 _queryId, uint256 _timestamp) external view returns(bytes memory);
+    function getValueByTimestamp(bytes32 _queryId, uint256 _timestamp)
+        external
+        view
+        returns (bytes memory);
 
     //reporter, value, name for most recent query IDs (w/ ability to dispute)
 
     //event type, description, timestamp, hash on a user's address
 
-    function getStakerInfo(address _sender) external view returns(uint256); //for reporter's status. (statuses pinned on tellor core discord)
+    function getStakerInfo(address _sender) external view returns (uint256); //for reporter's status. (statuses pinned on tellor core discord)
 
-    function getReportsSubmittedByAddress(address _reporter) external view returns(uint256);
+    function getReportsSubmittedByAddress(address _reporter)
+        external
+        view
+        returns (uint256);
 
-    function getReporterLastTimestamp(address _reporter) external view returns(uint256);
+    function getReporterLastTimestamp(address _reporter)
+        external
+        view
+        returns (uint256);
 
     //get last values on a request id
 
-    function getTimestampCountById(bytes32 _queryId) external view returns(uint256);
+    function getTimestampCountById(bytes32 _queryId)
+        external
+        view
+        returns (uint256);
 
-    function getTimeOfLastNewValue() external view returns(uint256);
+    function getTimeOfLastNewValue() external view returns (uint256);
 
-    function getCurrentReward(bytes32 _queryId) external view returns (uint256, uint256);
+    function getCurrentReward(bytes32 _queryId)
+        external
+        view
+        returns (uint256, uint256);
 
     function getTipsById(bytes32 _queryId) external view returns (uint256);
 }
 
 interface Master {
-    
     function getAddressVars(bytes32 _data) external view returns (address);
 
-    function getRequestUintVars(uint256 _requestId, bytes32 _data) external view returns (uint256);
+    function getRequestUintVars(uint256 _requestId, bytes32 _data)
+        external
+        view
+        returns (uint256);
 
     function getUintVar(bytes32 _data) external view returns (uint256);
-
 }
 
 /**
@@ -78,7 +102,7 @@ contract Main {
         admin = msg.sender;
     }
 
-    modifier onlyAdmin {
+    modifier onlyAdmin() {
         require(msg.sender == admin, "not an admin");
         _;
     }
@@ -116,7 +140,11 @@ contract Main {
     /**
      * @return Returns the current reward amount.
      */
-    function getCurrentReward(bytes32 _queryId) external view returns (uint256, uint256) {
+    function getCurrentReward(bytes32 _queryId)
+        external
+        view
+        returns (uint256, uint256)
+    {
         return oracle.getCurrentReward(_queryId);
     }
 
@@ -136,16 +164,13 @@ contract Main {
         }
         Value[] memory values = new Value[](_count);
         for (uint256 i = 0; i < _count; i++) {
-            uint256 ts =
-                oracle.getReportTimestampByIndex( //replaced
-                    _queryId,
-                    totalCount - i - 1
-                );
+            uint256 ts = oracle.getReportTimestampByIndex( //replaced
+                _queryId,
+                totalCount - i - 1
+            );
             bytes memory v = oracle.getValueByTimestamp(_queryId, ts); //replaced
             values[i] = Value({
-                meta: DataID({
-                    id: _queryId
-                }),
+                meta: DataID({id: _queryId}),
                 timestamp: ts,
                 value: v,
                 tip: oracle.getTipsById(_queryId) //replaced
@@ -156,25 +181,26 @@ contract Main {
     }
 
     /**
-     * @param count is the number of last values to return.
-     * @return Returns the last N values for a data IDs.
+     * @param _count is the number of last values to return.
+     * @param _queryIds is a bytes32 array of queryIds.
+     * @return Returns the last N values for a specified queryIds.
      */
-    // function getLastValuesAll(uint256 count)
-    //     external
-    //     view
-    //     returns (Value[] memory)
-    // {
-    //     Value[] memory values = new Value[](count * dataIDs.length);
-    //     uint256 pos = 0;
-    //     for (uint256 i = 0; i < dataIDs.length; i++) {
-    //         Value[] memory v = getLastValues(dataIDs[i].id, count);
-    //         for (uint256 ii = 0; ii < v.length; ii++) {
-    //             values[pos] = v[ii];
-    //             pos++;
-    //         }
-    //     }
-    //     return values;
-    // }
+    function getLastValuesAll(uint256 _count, bytes32[] memory _queryIds)
+        external
+        view
+        returns (Value[] memory)
+    {
+        Value[] memory values = new Value[](_count * _queryIds.length);
+        uint256 pos = 0;
+        for (uint256 i = 0; i < _queryIds.length; i++) {
+            Value[] memory v = getLastValues(_queryIds[i], _count);
+            for (uint256 ii = 0; ii < v.length; ii++) {
+                values[pos] = v[ii];
+                pos++;
+            }
+        }
+        return values;
+    }
 
     /**
      * @return Returns the contract deity that can do things at will.
