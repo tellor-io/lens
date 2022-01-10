@@ -60,20 +60,20 @@ module.exports = {
         url: `${process.env.MAINNET_FORK_URL}`,
       },
     },
-    // rinkeby: {
-    //   url: `${process.env.NODE_URL_RINKEBY}`,
-    //   // accounts: [process.env.PRIVATE_KEY]
-    // },
+    rinkeby: {
+      url: `${process.env.NODE_URL_RINKEBY}`,
+      accounts: [process.env.TESTNET_PK],
+    },
     // mainnet: {
     //   url: `${process.env.NODE_URL_MAINNET}`,
     //   accounts: [process.env.PRIVATE_KEY]
     // }
   },
-  // etherscan: {
-  //   // Your API key for Etherscan
-  //   // Obtain one at https://etherscan.io/
-  //   apiKey: process.env.ETHERSCAN
-  // },
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: process.env.ETHERSCAN_KEY,
+  },
   solidity: {
     compilers: [
       { version: "0.5.17" },

@@ -6,46 +6,17 @@ pragma experimental ABIEncoderV2;
 import "hardhat/console.sol";
 
 interface Oracle {
-    //reporter, value, name for most recent query IDs
-
-    function getCurrentValue(bytes32 _queryId)
-        external
-        view
-        returns (bytes memory);
-
     function getReportTimestampByIndex(bytes32 _queryId, uint256 _index)
         external
         view
         returns (uint256);
-
-    function getReporterByTimestamp(bytes32 _queryId, uint256 _timestamp)
-        external
-        view
-        returns (address);
 
     function getValueByTimestamp(bytes32 _queryId, uint256 _timestamp)
         external
         view
         returns (bytes memory);
 
-    //reporter, value, name for most recent query IDs (w/ ability to dispute)
-
-    //event type, description, timestamp, hash on a user's address
-
-    function getStakerInfo(address _sender) external view returns (uint256); //for reporter's status. (statuses pinned on tellor core discord)
-
-    function getReportsSubmittedByAddress(address _reporter)
-        external
-        view
-        returns (uint256);
-
-    function getReporterLastTimestamp(address _reporter)
-        external
-        view
-        returns (uint256);
-
     //get last values on a request id
-
     function getTimestampCountById(bytes32 _queryId)
         external
         view
@@ -59,17 +30,20 @@ interface Oracle {
         returns (uint256, uint256);
 
     function getTipsById(bytes32 _queryId) external view returns (uint256);
+
+    function getTipsByUser(address _user) external view returns (uint256);
+
+    function tipsInContract() external view returns (uint256);
 }
 
 interface Master {
     function getAddressVars(bytes32 _data) external view returns (address);
 
-    function getRequestUintVars(uint256 _requestId, bytes32 _data)
-        external
-        view
-        returns (uint256);
-
     function getUintVar(bytes32 _data) external view returns (uint256);
+}
+
+interface Governance {
+    function disputeFee() external view returns (uint256);
 }
 
 /**
@@ -79,6 +53,7 @@ interface Master {
 contract Main {
     Oracle public oracle;
     Master public master;
+    Governance public governance;
 
     struct DataID {
         bytes32 id;
@@ -91,53 +66,18 @@ contract Main {
         bytes value;
     }
 
-    address private admin;
-
-    // DataID[] public dataIDs;
-    // mapping(uint256 => uint256) public dataIDsMap;
-
-    constructor(address payable _oracle, address payable _master) {
+    constructor(
+        address payable _oracle,
+        address payable _master,
+        address payable _governance
+    ) {
         oracle = Oracle(_oracle);
         master = Master(_master);
-        admin = msg.sender;
+        governance = Governance(_governance);
     }
-
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "not an admin");
-        _;
-    }
-
-    function setOracle(address _oracle) external onlyAdmin {
-        oracle = Oracle(_oracle);
-    }
-
-    function setAdmin(address _admin) external onlyAdmin {
-        admin = _admin;
-    }
-
-    // function replaceDataIDs(DataID[] memory _dataIDs) external onlyAdmin {
-    //     delete dataIDs;
-    //     for (uint256 i = 0; i < _dataIDs.length; i++) {
-    //         dataIDs.push(_dataIDs[i]);
-    //         dataIDsMap[_dataIDs[i].id] = i;
-    //     }
-    // }
-
-    // function setDataID(uint256 _id, DataID memory _dataID) external onlyAdmin {
-    //     dataIDs[_id] = _dataID;
-    //     dataIDsMap[_dataID.id] = _id;
-    // }
-
-    // function pushDataID(DataID memory _dataID) external onlyAdmin {
-    //     dataIDs.push(_dataID);
-    //     dataIDsMap[_dataID.id] = dataIDs.length - 1;
-    // }
-
-    // function dataIDsAll() external view returns (DataID[] memory) {
-    //     return dataIDs;
-    // }
 
     /**
+     * @param _queryId bytes32 hash of queryId.
      * @return Returns the current reward amount.
      */
     function getCurrentReward(bytes32 _queryId)
@@ -149,7 +89,7 @@ contract Main {
     }
 
     /**
-     * @param _queryId is the ID for which the function returns the values for. When queryId is negative it returns the values for all dataIDs.
+     * @param _queryId is the ID for which the function returns the values for.
      * @param _count is the number of last values to return.
      * @return Returns the last N values for a request ID.
      */
@@ -231,89 +171,44 @@ contract Main {
     }
 
     /**
-     * @param _dataID is the ID for which the function returns the total tips.
-     * @return Returns the current tips for a give request ID.
+     * @param _queryId is the ID for which the function returns the total tips.
+     * @return Returns the current tips for a give query ID.
      */
-    function totalTip(uint256 _dataID) public view returns (uint256) {
-        return master.getRequestUintVars(_dataID, keccak256("_TOTAL_TIP"));
+    function totalTip(bytes32 _queryId) public view returns (uint256) {
+        return oracle.getTipsById(_queryId);
     }
 
     /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the last time when a value was submitted.
+     * @return Returns the last time a value was submitted by a reporter.
      */
     function timeOfLastValue() external view returns (uint256) {
-        return master.getUintVar(keccak256("_TIME_OF_LAST_NEW_VALUE"));
+        return oracle.getTimeOfLastNewValue();
     }
 
     /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the total number of requests from user thorugh the addTip function.
+     * @param _user address of the user we want to find out totalTip amount.
+     * @return Returns the total number of tips from a user.
      */
-    function requestCount() external view returns (uint256) {
-        return master.getUintVar(keccak256("_REQUEST_COUNT"));
+    function totalTipsByUser(address _user) external view returns (uint256) {
+        return oracle.getTipsByUser(_user);
     }
 
     /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the total oracle blocks.
+     * @return Returns the total amount of tips in the Oracle contract.
      */
-    function tBlock() external view returns (uint256) {
-        return master.getUintVar(keccak256("_T_BLOCK"));
+    function tipsInContract() external view returns (uint256) {
+        return oracle.tipsInContract();
     }
 
     /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the current block difficulty.
-     *
-     */
-    function difficulty() external view returns (uint256) {
-        return master.getUintVar(keccak256("_DIFFICULTY"));
-    }
-
-    /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable is used to calculate the block difficulty based on
-     * the time diff since the last master block.
-     */
-    function timeTarget() external view returns (uint256) {
-        return master.getUintVar(keccak256("_TIME_TARGET"));
-    }
-
-    /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the highest api/timestamp PayoutPool.
-     */
-    function currentTotalTips() external view returns (uint256) {
-        return master.getUintVar(keccak256("_CURRENT_TOTAL_TIPS"));
-    }
-
-    /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the number of miners who have mined this value so far.
-     */
-    function slotProgress() external view returns (uint256) {
-        return master.getUintVar(keccak256("_SLOT_PROGRESS"));
-    }
-
-    /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks the cost to dispute a mined value.
+     * @return Returns the current dispute fee amount.
      */
     function disputeFee() external view returns (uint256) {
-        return master.getUintVar(keccak256("_DISPUTE_FEE"));
+        return governance.disputeFee();
     }
 
     /**
-     * @return Returns the getUintVar variable named after the function name.
-     */
-    function disputeCount() external view returns (uint256) {
-        return master.getUintVar(keccak256("_DISPUTE_COUNT"));
-    }
-
-    /**
-     * @return Returns the getUintVar variable named after the function name.
-     * This variable tracks stake amount required to become a miner.
+     * @return Returns a variable that tracks the stake amount required to become a reporter.
      */
     function stakeAmount() external view returns (uint256) {
         return master.getUintVar(keccak256("_STAKE_AMOUNT"));
