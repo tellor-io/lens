@@ -9,8 +9,15 @@ async function deployLensContract(_network, _pk, _nodeURL) {
   var provider = new ethers.providers.JsonRpcProvider(_nodeURL);
   let wallet = new ethers.Wallet(privateKey, provider);
   let tellorMaster = "0x88dF592F8eb5D7Bd38bFeF7dEb0fBc02cf3778a0";
-  let tellorOracle = "0xe8218cACb0a5421BC6409e498d9f8CC8869945ea";
-  let tellorGov = "0x51d4088d4EeE00Ae4c55f46E0673e9997121DB00";
+  //Mainnet Address
+  let tellorOracle =
+    net == "rinkeby"
+      ? "0x18431fd88adF138e8b979A7246eb58EA7126ea16"
+      : "0xe8218cACb0a5421BC6409e498d9f8CC8869945ea";
+  let tellorGov =
+    net == "rinkeby"
+      ? "0xA64Bb0078eB80c97484f3f09Adb47b9B73CBcA00"
+      : "0x51d4088d4EeE00Ae4c55f46E0673e9997121DB00";
 
   //////////////// Lens Deployment
   console.log("Starting deployment for lens contract...");
@@ -60,3 +67,14 @@ deployLensContract(
     console.error(error);
     process.exit(1);
   });
+
+// deployLensContract(
+//   "mainnet",
+//   process.env.MAINNET_PK,
+//   process.env.NODE_URL_MAINNET
+// )
+//   .then(() => process.exit(0))
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   });
