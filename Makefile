@@ -8,4 +8,4 @@ slither: ## Run slither security checks.
 	slither . --filter-paths "node_modules/*" --exclude naming-convention,solc-version,pragma,external-function
 .PHONY: solhint
 solhint: ## Run solhint linter.
-	solhint 'contracts/**/*.sol'
+	solhint 'contracts/Main.sol'
