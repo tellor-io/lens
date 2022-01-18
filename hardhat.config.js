@@ -53,7 +53,7 @@ task("deploy", "Deploy and verify the contracts")
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  // defaultNetwork: "hardhat",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
       forking: {
@@ -99,5 +99,8 @@ module.exports = {
         },
       },
     ],
+  },
+  paths: {
+    tests: "./tests",
   },
 };
