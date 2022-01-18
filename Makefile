@@ -5,7 +5,7 @@ help: ## Displays help.
 
 .PHONY: slither
 slither: ## Run slither security checks.
-	slither . --filter-paths "node_modules/*" --exclude naming-convention,solc-version,pragma,external-function,unused-state,similar-names
+	slither . --filter-paths "node_modules/*" --exclude naming-convention,solc-version,pragma,external-function,unused-state,similar-names,missing-inheritance
 .PHONY: solhint
 solhint: ## Run solhint linter.
 	solhint 'contracts/Main.sol'
