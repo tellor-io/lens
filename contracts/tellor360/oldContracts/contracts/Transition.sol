@@ -4,7 +4,7 @@ pragma solidity 0.8.3;
 import "./tellor3/TellorStorage.sol";
 import "./TellorVars.sol";
 import "./interfaces/IOracle.sol";
-import "hardhat/console.sol";
+import "./interfaces/IController.sol";
 
 /**
  @author Tellor Inc.
@@ -27,10 +27,7 @@ contract Transition is TellorStorage, TellorVars {
         address _oracle,
         address _treasury
     ) {
-        require(
-            _governance != address(0),
-            "must set governance address"
-        );
+        require(_governance != address(0), "must set governance address");
         addresses[_GOVERNANCE_CONTRACT] = _governance;
         addresses[_ORACLE_CONTRACT] = _oracle;
         addresses[_TREASURY_CONTRACT] = _treasury;
@@ -56,6 +53,19 @@ contract Transition is TellorStorage, TellorVars {
         addresses[_ORACLE_CONTRACT] = _controller.addresses(_ORACLE_CONTRACT);
         addresses[_TREASURY_CONTRACT] = _controller.addresses(
             _TREASURY_CONTRACT
+        );
+        // Mint to oracle, parachute, and team operating grant contracts
+        IController(TELLOR_ADDRESS).mint(
+            addresses[_ORACLE_CONTRACT],
+            105120e18
+        );
+        IController(TELLOR_ADDRESS).mint(
+            0xAa304E98f47D4a6a421F3B1cC12581511dD69C55,
+            105120e18
+        );
+        IController(TELLOR_ADDRESS).mint(
+            0x83eB2094072f6eD9F57d3F19f54820ee0BaE6084,
+            18201e18
         );
     }
 
@@ -89,16 +99,16 @@ contract Transition is TellorStorage, TellorVars {
      * address of reportedMiner
      * address of reportingParty
      * address of proposedForkAddress
-     * uint of requestId
-     * uint of timestamp
-     * uint of value
-     * uint of minExecutionDate
-     * uint of numberOfVotes
-     * uint of blocknumber
-     * uint of minerSlot
-     * uint of quorum
-     * uint of fee
-     * int count of the current tally
+     * uint256 of requestId
+     * uint256 of timestamp
+     * uint256 of value
+     * uint256 of minExecutionDate
+     * uint256 of numberOfVotes
+     * uint256 of blocknumber
+     * uint256 of minerSlot
+     * uint256 of quorum
+     * uint256 of fee
+     * int256 count of the current tally
      */
     function getAllDisputeVars(uint256 _disputeId)
         external
@@ -142,7 +152,7 @@ contract Transition is TellorStorage, TellorVars {
     /**
      * @dev Gets id if a given hash has been disputed
      * @param _hash is the sha256(abi.encodePacked(_miners[2],_requestId,_timestamp));
-     * @return uint disputeId
+     * @return uint256 disputeId
      */
     function getDisputeIdByDisputeHash(bytes32 _hash)
         external
@@ -158,7 +168,7 @@ contract Transition is TellorStorage, TellorVars {
      * @param _data the variable to pull from the mapping. _data = keccak256("variable_name") where variable_name is
      * the variables/strings used to save the data in the mapping. The variables names are
      * commented out under the disputeUintVars under the Dispute struct
-     * @return uint value for the bytes32 data submitted
+     * @return uint256 value for the bytes32 data submitted
      */
     function getDisputeUintVars(uint256 _disputeId, bytes32 _data)
         external
@@ -240,7 +250,7 @@ contract Transition is TellorStorage, TellorVars {
     /**
      * @dev Counts the number of values that have been submitted for the request.
      * @param _requestId the requestId to look up
-     * @return uint count of the number of values received for the requestId
+     * @return uint256 count of the number of values received for the requestId
      */
     function getNewValueCountbyRequestId(uint256 _requestId)
         external
@@ -286,7 +296,7 @@ contract Transition is TellorStorage, TellorVars {
      * @param _data the variable to pull from the mapping. _data = keccak256("variable_name")
      * where variable_name is the variables/strings used to save the data in the mapping.
      * The variables names in the TellorVariables contract
-     * @return uint of specified variable
+     * @return uint256 of specified variable
      */
     function getUintVar(bytes32 _data) external view returns (uint256) {
         return uints[_data];
@@ -295,7 +305,7 @@ contract Transition is TellorStorage, TellorVars {
     /**
      * @dev Getter for if the party is migrated
      * @param _addy address of party
-     * @return if the party is migrated
+     * @return bool if the party is migrated
      */
     function isMigrated(address _addy) external view returns (bool) {
         return migrated[_addy];
@@ -312,7 +322,7 @@ contract Transition is TellorStorage, TellorVars {
      * @dev Retrieve value from oracle based on timestamp
      * @param _requestId being requested
      * @param _timestamp to retrieve data/value from
-     * @return value for timestamp submitted
+     * @return uint256 value for timestamp submitted
      */
     function retrieveData(uint256 _requestId, uint256 _timestamp)
         public
@@ -339,8 +349,8 @@ contract Transition is TellorStorage, TellorVars {
     }
 
     /**
-     * @dev Getter for the total_supply of oracle tokens
-     * @return uint total supply
+     * @dev Getter for the total_supply of tokens
+     * @return uint256 total supply
      */
     function totalSupply() external view returns (uint256) {
         return uints[_TOTAL_SUPPLY];
@@ -351,7 +361,7 @@ contract Transition is TellorStorage, TellorVars {
      * (or disputes on old Tellor values)
      */
     fallback() external {
-        address _addr = addresses[_TELLOR_CONTRACT]; // Main Tellor address (Harcode this in?)
+        address _addr = 0x2754da26f634E04b26c4deCD27b3eb144Cf40582; // Main Tellor address (Harcode this in?)
         // Obtain function header from msg.data
         bytes4 _function;
         for (uint256 i = 0; i < 4; i++) {
@@ -370,10 +380,8 @@ contract Transition is TellorStorage, TellorVars {
                 bytes4(bytes32(keccak256("unlockDisputeFee(uint256)"))),
             "function should be allowed"
         ); //should autolock out after a week (no disputes can begin past a week)
-        console.log("function was allowed by the fallback");
         // Calls the function in msg.data from main Tellor address
         (bool _result, ) = _addr.delegatecall(msg.data);
-        console.log("delegate call successful");
         assembly {
             returndatacopy(0, 0, returndatasize())
             switch _result
