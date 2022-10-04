@@ -8,7 +8,7 @@
    networks: {
      hardhat: {
        forking: {
-        url: `${process.env.NODE_URL_FORK}`
+        url: `${process.env.NODE_URL_RINKEBY}`
        }
      },
    }
