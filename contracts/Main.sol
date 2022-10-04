@@ -3,57 +3,18 @@
 pragma solidity >=0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
-
-interface Oracle {
-    function getReportTimestampByIndex(bytes32 _queryId, uint256 _index)
-        external
-        view
-        returns (uint256);
-
-    function getValueByTimestamp(bytes32 _queryId, uint256 _timestamp)
-        external
-        view
-        returns (bytes memory);
-
-    //get last values on a request id
-    function getTimestampCountById(bytes32 _queryId)
-        external
-        view
-        returns (uint256);
-
-    function getTimeOfLastNewValue() external view returns (uint256);
-
-    function getCurrentReward(bytes32 _queryId)
-        external
-        view
-        returns (uint256, uint256);
-
-    function getTipsById(bytes32 _queryId) external view returns (uint256);
-
-    function getTipsByUser(address _user) external view returns (uint256);
-
-    function tipsInContract() external view returns (uint256);
-}
-
-interface Master {
-    function getAddressVars(bytes32 _data) external view returns (address);
-
-    function getUintVar(bytes32 _data) external view returns (uint256);
-}
-
-interface Governance {
-    function disputeFee() external view returns (uint256);
-}
+// import "hardhat/console.sol";
+import "../contracts/interfaces/ITellor.sol";
 
 /**
  * @title Tellor Lens main contract
  * @dev Aggregate and simplify calls to the Tellor oracle.
  **/
 contract Main {
-    Oracle public oracle;
-    Master public master;
-    Governance public governance;
+    ITellor public oracle; //TellorFlex
+    ITellor public master; //Tellor360
+    ITellor public governance;
+    ITellor public autopay;
 
     struct DataID {
         bytes32 id;
@@ -69,11 +30,13 @@ contract Main {
     constructor(
         address payable _oracle,
         address payable _master,
-        address payable _governance
+        address payable _governance,
+        address payable _autopay
     ) {
-        oracle = Oracle(_oracle);
-        master = Master(_master);
-        governance = Governance(_governance);
+        oracle = ITellor(_oracle);
+        master = ITellor(_master);
+        governance = ITellor(_governance);
+        autopay = ITellor(_autopay);
     }
 
     /**
@@ -85,7 +48,12 @@ contract Main {
         view
         returns (uint256, uint256)
     {
-        return oracle.getCurrentReward(_queryId);
+        uint256 _timeDiff = block.timestamp - oracle.timeOfLastNewValue();
+        uint256 _reward = (_timeDiff * oracle.timeBasedReward()) / 300; //.5 TRB per 5 minutes (should we make this upgradeable)
+        if (oracle.getTotalTimeBasedRewardsBalance() < _reward) {
+            _reward = oracle.getTotalTimeBasedRewardsBalance();
+        }
+        return (autopay.getCurrentTip(_queryId), _reward);
     }
 
     /**
@@ -98,22 +66,22 @@ contract Main {
         view
         returns (Value[] memory)
     {
-        uint256 totalCount = oracle.getTimestampCountById(_queryId); //replaced
+        uint256 totalCount = oracle.getNewValueCountbyQueryId(_queryId); //replaced
         if (_count > totalCount) {
             _count = totalCount;
         }
         Value[] memory values = new Value[](_count);
         for (uint256 i = 0; i < _count; i++) {
-            uint256 ts = oracle.getReportTimestampByIndex( //replaced
+            uint256 ts = oracle.getTimestampbyQueryIdandIndex( //replaced
                 _queryId,
                 totalCount - i - 1
             );
-            bytes memory v = oracle.getValueByTimestamp(_queryId, ts); //replaced
+            bytes memory v = oracle.retrieveData(_queryId, ts); //replaced
             values[i] = Value({
                 meta: DataID({id: _queryId}),
                 timestamp: ts,
                 value: v,
-                tip: oracle.getTipsById(_queryId) //replaced
+                tip: autopay.getCurrentTip(_queryId) //replaced
             });
         }
 
@@ -175,14 +143,14 @@ contract Main {
      * @return Returns the current tips for a give query ID.
      */
     function totalTip(bytes32 _queryId) public view returns (uint256) {
-        return oracle.getTipsById(_queryId);
+        return autopay.getCurrentTip(_queryId);
     }
 
     /**
      * @return Returns the last time a value was submitted by a reporter.
      */
     function timeOfLastValue() external view returns (uint256) {
-        return oracle.getTimeOfLastNewValue();
+        return oracle.timeOfLastNewValue();
     }
 
     /**
@@ -190,28 +158,28 @@ contract Main {
      * @return Returns the total number of tips from a user.
      */
     function totalTipsByUser(address _user) external view returns (uint256) {
-        return oracle.getTipsByUser(_user);
+        return autopay.getTipsByAddress(_user);
     }
 
     /**
      * @return Returns the total amount of tips in the Oracle contract.
      */
     function tipsInContract() external view returns (uint256) {
-        return oracle.tipsInContract();
+        return oracle.getTotalTimeBasedRewardsBalance();
     }
 
     /**
      * @return Returns the current dispute fee amount.
      */
     function disputeFee() external view returns (uint256) {
-        return governance.disputeFee();
+        return governance.getDisputeFee();
     }
 
     /**
      * @return Returns a variable that tracks the stake amount required to become a reporter.
      */
     function stakeAmount() external view returns (uint256) {
-        return master.getUintVar(keccak256("_STAKE_AMOUNT"));
+        return oracle.stakeAmount();
     }
 
     /**
@@ -219,6 +187,6 @@ contract Main {
      * This variable tracks the number of parties currently staked.
      */
     function stakeCount() external view returns (uint256) {
-        return master.getUintVar(keccak256("_STAKE_AMOUNT"));
+        return oracle.totalStakers();
     }
 }
