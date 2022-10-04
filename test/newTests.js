@@ -58,7 +58,7 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
       "contracts/interfaces/ITellor.sol:ITellor",
       tellorMaster
     );
-    //Making an instance of the iTellor contract
+    //Making an instance of the ITellor contract
     oracle = await ethers.getContractAt(
       "contracts/interfaces/ITellor.sol:ITellor",
       tellorFlex
