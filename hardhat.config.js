@@ -1,106 +1,15 @@
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-etherscan");
-require("dotenv").config();
-const { dataIDs } = require("./dataIDs");
-
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-});
-
-task("deploy", "Deploy and verify the contracts")
-  .addParam("oracleAddress", "The master contract address")
-  .setAction(async (taskArgs) => {
-    var oracleAddress = taskArgs.oracleAddress;
-    await run("compile");
-    const t = await ethers.getContractFactory("Main");
-    const contract = await t.deploy(oracleAddress);
-    await contract.deployed();
-    console.log(
-      "contract deployed to:",
-      "https://" +
-        taskArgs.network +
-        ".etherscan.io/address/" +
-        contract.address
-    );
-    console.log(
-      "    transaction hash:",
-      "https://" +
-        taskArgs.network +
-        ".etherscan.io/tx/" +
-        contract.deployTransaction.hash
-    );
-
-    // Wait for few confirmed transactions.
-    // Otherwise the etherscan api doesn't find the deployed contract.
-    console.log("waiting for tx confirmation...");
-    await contract.deployTransaction.wait(3);
-
-    console.log("Adding Data IDs");
-    await contract.replaceDataIDs(dataIDs);
-
-    console.log("submitting for etherscan verification...");
-    await run("verify:verify", {
-      address: contract.address,
-      constructorArguments: [oracleAddress],
-    });
-  });
-
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-module.exports = {
-  defaultNetwork: "hardhat",
-  // networks: {
-  //   hardhat: {
-  //     forking: {
-  //       url: `${process.env.MAINNET_FORK_URL}`,
-  //     },
-  //   },
-  //   rinkeby: {
-  //     url: `${process.env.NODE_URL_RINKEBY}`,
-  //     accounts: [process.env.TESTNET_PK],
-  //   },
-  // mainnet: {
-  //   url: `${process.env.NODE_URL_MAINNET}`,
-  //   accounts: [process.env.PRIVATE_KEY]
-  // }
-  // },
-  // etherscan: {
-  //   // Your API key for Etherscan
-  //   // Obtain one at https://etherscan.io/
-  //   apiKey: process.env.ETHERSCAN_KEY,
-  // },
-  solidity: {
-    compilers: [
-      { version: "0.5.17" },
-      {
-        version: "0.7.4",
-        optimizer: {
-          enabled: true,
-          runs: 200,
-        },
-      },
-      {
-        version: "0.7.6",
-        optimizer: {
-          enabled: true,
-          runs: 200,
-        },
-      },
-      {
-        version: "0.8.3",
-        optimizer: {
-          enabled: true,
-          runs: 200,
-        },
-      },
-    ],
-  },
-  paths: {
-    tests: "./tests",
-  },
-};
+ require("@nomiclabs/hardhat-ethers");
+ require("dotenv").config();
+ module.exports = {
+   solidity: "0.8.3",
+   networks: {
+     hardhat: {
+       forking: {
+        url: `${process.env.NODE_URL_RINKEBY}`
+       }
+     },
+   }
+ };
