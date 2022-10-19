@@ -1,5 +1,8 @@
 ![Checks](https://github.com/tellor-io/lens/workflows/Checks/badge.svg)
 
+# Overview
+Tellor Lens is a helper, read-only contract for easy access to Tellor data across the Master, Autopay, Oracle, and Governance contracts.
+
 ## Setting up and deploying
 
 Install Dependencies

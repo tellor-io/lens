@@ -22,7 +22,7 @@ jobs:
         CI: true
         # These are not needed for the tests but
         # hardhat fails to start when not present.
-        NODE_URL_RINKEBY: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        NODE_URL: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         NODE_URL_MAINNET: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         PRIVATE_KEY: "00000000000000000000000000000000000000000000000000"
   Linting:
@@ -53,6 +53,6 @@ jobs:
 #         env:
 #           # These are not needed for the tests but
 #           # hardhat fails to start when not present.
-#           NODE_URL_RINKEBY: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#           NODE_URL: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 #           NODE_URL_MAINNET: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 #           PRIVATE_KEY: "00000000000000000000000000000000000000000000000000"

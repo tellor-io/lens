@@ -7,16 +7,16 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
   //Globals
   let accounts, lens, lensFactory, devWallet, master, oracle, autopay;
 
-  const DEV_WALLET = "0x20bEC8F31dea6C13A016DC7fCBdF74f61DC8Ec2c";
+  const DEV_WALLET = "0x4A1099d4897fFcc8eC7cb014B1a7442B28C7940C";
   const deityAddress = "0x0000000000000000000000000000000000000000";
   const ownerAddress = "0x0000000000000000000000000000000000000000";
   const pendingOwnerAddress = "0x0000000000000000000000000000000000000000";
   const proxyAddress = "0x0000000000000000000000000000000000000000";
-  const tellorFlex = "0x943fDA606fA75c2E8918b72A4cF92b68040a1671";
-  const tellorGovernance = "0x5b58A793334aa4443775573ae6d47A931b5bde70";
-  const tellorMaster = "0x88dF592F8eb5D7Bd38bFeF7dEb0fBc02cf3778a0";
-  const tellor360 = "0xb4c938f5A5Db52Cf4A4B55d3439aAbc0944BCD63";
-  const tellorAutopay = "0x2D3d3842F5cF39411317f1E28F042fcE409db4B9";
+  const tellorFlex = "0x873DAEd52B52b826C000713de3DCdB77641F7756";
+  const tellorGovernance = "0x199839a4907ABeC8240D119B606C98c405Bb0B33";
+  const tellorMaster = "0x51c59c6cAd28ce3693977F2feB4CfAebec30d8a2";
+  const tellor360 = "0x8C9057FA16D3Debb703ADBac0A097d2E5577AA6b";
+  const tellorAutopay = "0x7E7b96d13D75bc7DaF270A491e2f1e571147d4DA";
 
 
   const QUERYID1 = h.uintTob32(1);
@@ -29,20 +29,19 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
 
   //Hardhat Forking from Mainnet
   //To retrieve live values from
-  //Block 11487680 to test against
+  //Block 7797225 to test against
   beforeEach(async function () {
     accounts = await ethers.getSigners();
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [
-        {
-          forking: {
-            jsonRpcUrl: hre.config.networks.hardhat.forking.url,
-            blockNumber: 11487680,
-          },
-        },
-      ],
-    });
+    // await hre.network.provider.request({
+    //   method: "hardhat_reset",
+    //   params: [
+    //     {
+    //       forking: {
+    //         jsonRpcUrl: hre.config.networks.hardhat.forking.url,
+    //       },
+    //     },
+    //   ],
+    // });
     //Deploying Lens Contract to test methods
     lensFactory = await ethers.getContractFactory("contracts/Main.sol:Main");
     lens = await lensFactory.deploy(tellorFlex, tellor360, tellorGovernance, tellorAutopay);
@@ -73,17 +72,17 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
     describe("constructor function", () => {
       it("checks if Oracle contract address was set correctly", async () => {
         expect(await lens.oracle()).to.equal(
-          "0x943fDA606fA75c2E8918b72A4cF92b68040a1671"
+          "0x873DAEd52B52b826C000713de3DCdB77641F7756"
         );
       });
       it("checks if Master contract address was set correctly", async () => {
         expect(await lens.master()).to.equal(
-          "0xb4c938f5A5Db52Cf4A4B55d3439aAbc0944BCD63"
+          "0x8C9057FA16D3Debb703ADBac0A097d2E5577AA6b"
         );
       });
       it("checks if Governance contract address was set correctly", async () => {
         expect(await lens.governance()).to.equal(
-          "0x5b58A793334aa4443775573ae6d47A931b5bde70"
+          "0x199839a4907ABeC8240D119B606C98c405Bb0B33"
         );
       });
     });
@@ -151,12 +150,13 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
     });
     describe("timeOfLastValue function", () => {
       it("checks the last time a value was submitted", async () => {
-        expect(parseInt(await lens.timeOfLastValue())).to.equal(1664384935);
+        expect(parseInt(await lens.timeOfLastValue())).to.equal(1666195236);
       });
     });
     describe("totalTipsByUser function", () => {
       it("checks total amount tipped by a user", async () => {
         await master.connect(devWallet).transfer(accounts[5].address, 100);
+        console.log("here")
         assert(await master.connect(devWallet).balanceOf(accounts[5].address) == 100, "check account balance");
         await master.connect(accounts[5]).approve(autopay.address, h.toWei("10"));
         await autopay.connect(accounts[5]).tip(TRB_QUERY_ID, 10, TRB_QUERY_DATA);
@@ -172,13 +172,13 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
       it("checks the current dispute fee amount", async () => {
         //checking if disputeFee should be what we expect
         expect(parseInt(await lens.disputeFee())).to.equal(
-          parseInt(h.toWei("15.625"))
+          parseInt(h.toWei("10"))
         );
       });
     });
     describe("stakeAmount function", () => {
       it("checks the stake amount needed to become a data reporter", async () => {
-        expect(parseInt(await lens.stakeAmount())).to.equal(parseInt(h.toWei("156.25")));
+        expect(parseInt(await lens.stakeAmount())).to.equal(parseInt(h.toWei("100")));
       });
     });
     describe("stakeCount function", () => {
