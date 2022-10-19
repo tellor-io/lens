@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 pragma experimental ABIEncoderV2;
 
 // import "hardhat/console.sol";
-import "../contracts/interfaces/ITellor.sol";
+import "../contracts/interfaces/iTellor.sol";
 
 /**
  * @title Tellor Lens main contract
