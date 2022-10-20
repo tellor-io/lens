@@ -60,7 +60,7 @@ async function deployLensContract(_network, _pk, _nodeURL) {
 deployLensContract(
   "rinkeby",
   process.env.TESTNET_PK,
-  process.env.NODE_URL_RINKEBY
+  process.env.NODE_URL
 )
   .then(() => process.exit(0))
   .catch((error) => {
