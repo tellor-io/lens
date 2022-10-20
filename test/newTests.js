@@ -54,16 +54,16 @@ describe("Tellor360 Lens Contract - Function Tests", function () {
     devWallet = ethers.provider.getSigner(DEV_WALLET);
     //Transferring to accounts[5].address
     master = await ethers.getContractAt(
-      "contracts/interfaces/ITellor.sol:ITellor",
+      "contracts/interfaces/ITellor.sol:iTellor",
       tellorMaster
     );
     //Making an instance of the ITellor contract
     oracle = await ethers.getContractAt(
-      "contracts/interfaces/ITellor.sol:ITellor",
+      "contracts/interfaces/ITellor.sol:iTellor",
       tellorFlex
     );
     autopay = await ethers.getContractAt(
-      "contracts/interfaces/ITellor.sol:ITellor",
+      "contracts/interfaces/ITellor.sol:iTellor",
       tellorAutopay
     );
   });
